@@ -22,6 +22,6 @@ namespace ExchangeHub.Contracts
         public decimal WeightedAvgPrice { get; set; }
         public double PriceChangePercent { get; set; }
         public decimal PriceChange { get; set; }
-        public string Symbol { get; set; }
+        public string Pair { get; set; }
     }
 }

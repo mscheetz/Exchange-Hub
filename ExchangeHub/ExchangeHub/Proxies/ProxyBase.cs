@@ -16,14 +16,14 @@ namespace ExchangeHub.Proxies
 
             #region Binance
 
-            TinyMapper.Bind<Binance.NetCore.Entities.Balance, ExchangeHub.Contracts.Balance>(config =>
+            TinyMapper.Bind<Binance.NetCore.Entities.Balance, Contracts.Balance>(config =>
             {
                 config.Bind(source => source.asset, target => target.Symbol);
                 config.Bind(source => source.free, target => target.Available);
                 config.Bind(source => source.locked, target => target.Frozen);
             });
 
-            TinyMapper.Bind<Binance.NetCore.Entities.TradeResponse, ExchangeHub.Contracts.OrderResponse>(config =>
+            TinyMapper.Bind<Binance.NetCore.Entities.TradeResponse, Contracts.OrderResponse>(config =>
             {
                 config.Bind(source => source.executedQty, target => target.FilledQuantity);
                 config.Bind(source => source.orderId, target => target.OrderId);
@@ -34,10 +34,61 @@ namespace ExchangeHub.Proxies
                 config.Bind(source => source.symbol, target => target.Symbol);
             });
 
+            TinyMapper.Bind<Binance.NetCore.Entities.Orders, Contracts.Order>(config =>
+            {
+                config.Bind(source => source.price, target => target.price);
+                config.Bind(source => source.quantity, target => target.quantity);
+            });
+
+            TinyMapper.Bind<Binance.NetCore.Entities.OrderBook, Contracts.OrderBook>(config =>
+            {
+                config.Bind(source => source.asks, target => target.asks);
+                config.Bind(source => source.bids, target => target.bids);
+            });
+
             #endregion Binance
+
+            #region Bittrex
+
+            TinyMapper.Bind<BittrexApi.NetCore.Entities.Balance, Contracts.Balance>(config =>
+            {
+                config.Bind(source => source.symbol, target => target.Symbol);
+                config.Bind(source => source.available, target => target.Available);
+                config.Bind(source => source.pending, target => target.Frozen);
+            });
+
+            TinyMapper.Bind<BittrexApi.NetCore.Entities.OrderInterval, Contracts.Order>(config =>
+            {
+                config.Bind(source => source.quantity, target => target.quantity);
+                config.Bind(source => source.rate, target => target.price);
+            });
+
+            TinyMapper.Bind<BittrexApi.NetCore.Entities.OrderBook, Contracts.OrderBook>(config =>
+            {
+                config.Bind(source => source.buy, target => target.bids);
+                config.Bind(source => source.sell, target => target.asks);
+            });
+
+            TinyMapper.Bind<BittrexApi.NetCore.Entities.MarketSummary, Contracts.Ticker>(config =>
+            {
+                config.Bind(source => source.ask, target => target.AskPrice);
+                config.Bind(source => source.bid, target => target.BidPrice);
+                config.Bind(source => source.created, target => target.OpenTime);
+                config.Bind(source => source.high, target => target.High);
+                config.Bind(source => source.last, target => target.LastPrice);
+                config.Bind(source => source.low, target => target.Low);
+                config.Bind(source => source.marketName, target => target.Pair);
+                config.Bind(source => source.openBuys, target => target.BidQty);
+                config.Bind(source => source.openSells, target => target.AskQty);
+                config.Bind(source => source.prevDay, target => target.Open);
+                config.Bind(source => source.volume, target => target.Volume);
+            });
+
+            #endregion Bittrex
         }
 
         #region Binance
+
         public Contracts.OrderResponse BinanceOrderResponseToOrderResponse(Binance.NetCore.Entities.OrderResponse binanceResponse)
         {
             var orderResponse = new Contracts.OrderResponse
@@ -107,7 +158,7 @@ namespace ExchangeHub.Proxies
                 PreviousClosePrice = decimal.Parse(tick.prevClosePrice),
                 PriceChange = decimal.Parse(tick.priceChange),
                 PriceChangePercent = double.Parse(tick.priceChangePercent),
-                Symbol = tick.symbol,
+                Pair = tick.symbol,
                 Volume = decimal.Parse(tick.volume),
                 WeightedAvgPrice = decimal.Parse(tick.weightedAvgPrice),
             };
@@ -334,5 +385,166 @@ namespace ExchangeHub.Proxies
         }
 
         #endregion Binance
+
+        #region Bittrex
+
+        public Contracts.OrderResponse BittrexOrderToOrderResponse(BittrexApi.NetCore.Entities.Order bittrexOrder)
+        {
+            Contracts.OrderStatus orderStatus;
+
+            if (bittrexOrder.quantity == bittrexOrder.quantityRemaining)
+            {
+                orderStatus = Contracts.OrderStatus.Open;
+            }
+            else if (bittrexOrder.quantityRemaining > 0)
+            {
+                orderStatus = Contracts.OrderStatus.PartialFill;
+            }
+            else
+            {
+                orderStatus = Contracts.OrderStatus.Filled;
+            }
+
+            Contracts.Side side = bittrexOrder.orderType.Equals("LIMIT_BUY")
+                ? Contracts.Side.Buy : Contracts.Side.Sell;
+
+            var orderResponse = new Contracts.OrderResponse
+            {
+                FilledQuantity = bittrexOrder.quantity - bittrexOrder.quantityRemaining,
+                OrderId = bittrexOrder.orderId,
+                OrderQuantity = bittrexOrder.quantity,
+                OrderStatus = orderStatus,
+                Price = bittrexOrder.price,
+                Side = side,
+                Symbol = bittrexOrder.pair
+            };
+
+            return orderResponse;
+        }
+
+        public Contracts.OrderResponse BittrexOrderDetailToOrderResponse(BittrexApi.NetCore.Entities.OrderDetail tradeResponse)
+        {
+            Contracts.OrderStatus orderStatus;
+
+            if (tradeResponse.cancelInitiated)
+            {
+                orderStatus = Contracts.OrderStatus.Canceled;
+            }
+            else
+            {
+                if (tradeResponse.quantity == tradeResponse.quantityRemaining)
+                {
+                    orderStatus = Contracts.OrderStatus.Open;
+                }
+                else if (tradeResponse.quantityRemaining > 0)
+                {
+                    orderStatus = Contracts.OrderStatus.PartialFill;
+                }
+                else
+                {
+                    orderStatus = Contracts.OrderStatus.Filled;
+                }
+            }
+
+            Contracts.Side side = tradeResponse.orderType.Equals("LIMIT_BUY")
+                ? Contracts.Side.Buy : Contracts.Side.Sell;
+
+            var orderResponse = new Contracts.OrderResponse
+            {
+                FilledQuantity = tradeResponse.quantity - tradeResponse.quantityRemaining,
+                OrderId = tradeResponse.orderId,
+                OrderQuantity = tradeResponse.quantity,
+                OrderStatus = orderStatus,
+                Price = tradeResponse.price,
+                Side = side,
+                Symbol = tradeResponse.pair,
+                TransactTime = tradeResponse.opened
+            };
+
+            return orderResponse;
+        }
+
+        public Contracts.OrderResponse BittrexOpenOrderToOrderResponse(BittrexApi.NetCore.Entities.OpenOrder openOrder)
+        {
+            Contracts.OrderStatus orderStatus;
+
+            if (openOrder.cancelInitiated)
+            {
+                orderStatus = Contracts.OrderStatus.Canceled;
+            }
+            else
+            {
+                if (openOrder.quantity == openOrder.quantityRemaining)
+                {
+                    orderStatus = Contracts.OrderStatus.Open;
+                }
+                else if (openOrder.quantityRemaining > 0)
+                {
+                    orderStatus = Contracts.OrderStatus.PartialFill;
+                }
+                else
+                {
+                    orderStatus = Contracts.OrderStatus.Filled;
+                }
+            }
+
+            Contracts.Side side = openOrder.orderType.Equals("LIMIT_BUY")
+                ? Contracts.Side.Buy : Contracts.Side.Sell;
+
+            var orderResponse = new Contracts.OrderResponse
+            {
+                FilledQuantity = openOrder.quantity - openOrder.quantityRemaining,
+                OrderId = openOrder.orderId,
+                OrderQuantity = openOrder.quantity,
+                OrderStatus = orderStatus,
+                Price = openOrder.price,
+                Side = side,
+                Symbol = openOrder.pair,
+                TransactTime = openOrder.opened
+            };
+
+            return orderResponse;
+        }
+
+        public Contracts.Side BittrexSideConverter(BittrexApi.NetCore.Entities.Side bittrexSide)
+        {
+            Contracts.Side side;
+
+            switch (bittrexSide)
+            {
+                case BittrexApi.NetCore.Entities.Side.BUY:
+                    side = Contracts.Side.Buy;
+                    break;
+                case BittrexApi.NetCore.Entities.Side.SELL:
+                    side = Contracts.Side.Sell;
+                    break;
+                default:
+                    side = Contracts.Side.Buy;
+                    break;
+            }
+
+            return side;
+        }
+
+        public BittrexApi.NetCore.Entities.Side BittrexSideReConverter(Contracts.Side side)
+        {
+            BittrexApi.NetCore.Entities.Side bittrexSide;
+
+            switch (side)
+            {
+                case Contracts.Side.Buy:
+                    bittrexSide = BittrexApi.NetCore.Entities.Side.BUY;
+                    break;
+                case Contracts.Side.Sell:
+                    bittrexSide = BittrexApi.NetCore.Entities.Side.SELL;
+                    break;
+                default:
+                    bittrexSide = BittrexApi.NetCore.Entities.Side.BUY;
+                    break;
+            }
+
+            return bittrexSide;
+        }
+        #endregion Bittrex
     }
 }
