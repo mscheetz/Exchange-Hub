@@ -1,5 +1,6 @@
 ﻿using BittrexApi.NetCore;
 using ExchangeHub.Contracts;
+using KuCoinApi.NetCore;
 using Nelibur.ObjectMapper;
 using System;
 using System.Collections.Generic;
@@ -9,94 +10,102 @@ using System.Threading.Tasks;
 
 namespace ExchangeHub.Proxies
 {
-    public class BittrexProxy : ProxyBase, IExchangeProxy
+    public class KuCoinProxy : ProxyBase, IExchangeProxy
     {
-        public BittrexClient bittrex;
+        public KuCoinApiClient kuCoin;
 
-        public BittrexProxy(Contracts.ApiInformation apiInformation)
+        public KuCoinProxy(Contracts.ApiInformation apiInformation)
         {
-            bittrex = new BittrexClient(apiInformation.ApiKey, apiInformation.ApiSecret);
+            kuCoin = new KuCoinApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
         }
 
         public IEnumerable<string> GetMarkets()
         {
-            var response = bittrex.GetMarkets();
+            var response = kuCoin.GetMarkets();
 
-            return response.OrderBy(r => r.pair).Select(r => r.pair).ToList();
+            return response.ToList();
         }
 
         public async Task<IEnumerable<string>> GetMarketsAsync()
         {
-            var response = await bittrex.GetMarketsAsync();
+            var response = await kuCoin.GetMarketsAsync();
 
-            return response.OrderBy(r => r.pair).Select(r => r.pair).ToList();
+            return response.ToList();
         }
 
         public IEnumerable<string> GetMarkets(string baseSymbol)
         {
-            var response = bittrex.GetMarkets();
+            var response = kuCoin.GetMarkets();
 
-            return response.Where(r => r.pair.EndsWith(baseSymbol)).OrderBy(r => r.pair).Select(r => r.pair).ToList();
+            return response.Where(r => r.EndsWith(baseSymbol)).ToList();
         }
 
         public async Task<IEnumerable<string>> GetMarketsAsync(string baseSymbol)
         {
-            var response = await bittrex.GetMarketsAsync();
+            var response = await kuCoin.GetMarketsAsync();
 
-            return response.Where(r => r.pair.EndsWith(baseSymbol)).OrderBy(r => r.pair).Select(r => r.pair).ToList();
+            return response.Where(r => r.EndsWith(baseSymbol)).ToList();
         }
 
         public IEnumerable<Balance> GetBalance()
         {
-            var bal = bittrex.GetBalances();
-            
-            return BittrexBalanceToBalance(bal);
+            throw new Exception("Coming soon");
         }
 
         public async Task<IEnumerable<Balance>> GetBalanceAsync()
         {
-            var bal = await bittrex.GetBalancesAsync();
-
-            return BittrexBalanceToBalance(bal);
+            throw new Exception("Coming soon");
         }
 
         public OrderResponse LimitOrder(string pair, decimal price, decimal quantity, Side side)
         {
-            BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
-            
-            var response = bittrex.PlaceOrder(pair, bittrexSide, quantity, price);
+            var parms = new KuCoinApi.NetCore.Entities.TradeParams
+            {
+                price = price,
+                quantity = quantity,
+                side = side.ToString().ToUpper(),
+                symbol = pair
+            };
 
-            return this.GetOrder(string.Empty, response);
+            var response = kuCoin.PostTrade(parms);
+            
+            return this.GetOrder(string.Empty, response.data["orderOid"]);
         }
 
         public async Task<OrderResponse> LimitOrderAsync(string pair, decimal price, decimal quantity, Side side)
         {
-            BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
+            var parms = new KuCoinApi.NetCore.Entities.TradeParams
+            {
+                price = price,
+                quantity = quantity,
+                side = side.ToString().ToUpper(),
+                symbol = pair
+            };
 
-            var response = await bittrex.PlaceOrderAsync(pair, bittrexSide, quantity, price);
+            var response = await kuCoin.PostTradeAsync(parms);
 
-            return this.GetOrder(string.Empty, response);
+            return await this.GetOrderAsync(string.Empty, response.data["orderOid"]);
         }
 
         public OrderResponse MarketOrder(string pair, decimal quantity, Side side)
         {
-            var price = bittrex.GetTicker(pair).last;
+            var price = kuCoin.GetTicker(pair).last;
 
-            BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
+            BittrexApi.NetCore.Entities.Side kuCoinSide = this.BittrexSideReConverter(side);
 
-            var response = bittrex.PlaceOrder(pair, bittrexSide, quantity, price);
+            var response = kuCoin.PlaceOrder(pair, kuCoinSide, quantity, price);
 
             return this.GetOrder(string.Empty, response);
         }
 
         public async Task<OrderResponse> MarketOrderAsync(string pair, decimal quantity, Side side)
         {
-            var ticker = await bittrex.GetTickerAsync(pair);
+            var ticker = await kuCoin.GetTickerAsync(pair);
             var price = ticker.last;
 
-            BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
+            BittrexApi.NetCore.Entities.Side kuCoinSide = this.BittrexSideReConverter(side);
 
-            var response = await bittrex.PlaceOrderAsync(pair, bittrexSide, quantity, price);
+            var response = await kuCoin.PlaceOrderAsync(pair, kuCoinSide, quantity, price);
 
             return this.GetOrder(string.Empty, response);
         }
@@ -113,7 +122,7 @@ namespace ExchangeHub.Proxies
 
         public OrderResponse CancelOrder(string orderId, string pair)
         {
-            var response = bittrex.CancelOrder(orderId);
+            var response = kuCoin.CancelOrder(orderId);
 
             var orderResponse = new OrderResponse
             {
@@ -127,7 +136,7 @@ namespace ExchangeHub.Proxies
 
         public async Task<OrderResponse> CancelOrderAsync(string orderId, string pair)
         {
-            var response = await bittrex.CancelOrderAsync(orderId);
+            var response = await kuCoin.CancelOrderAsync(orderId);
 
             var orderResponse = new OrderResponse
             {
@@ -151,21 +160,21 @@ namespace ExchangeHub.Proxies
 
         public Ticker Get24hrStats(string symbol)
         {
-            var response = bittrex.GetMarketSummary(symbol);
+            var response = kuCoin.GetTick(symbol);
 
-            return TinyMapper.Map<Ticker>(response);
+            return this.KuCoinTickToTicker(response);
         }
 
         public async Task<Ticker> Get24hrStatsAsync(string symbol)
         {
-            var response = await bittrex.GetMarketSummaryAsync(symbol);
+            var response = await kuCoin.GetTickAsync(symbol);
 
-            return TinyMapper.Map<Ticker>(response);
+            return this.KuCoinTickToTicker(response);
         }
 
         public Dictionary<string, string> GetDepositAddress(string symbol)
         {
-            var response = bittrex.GetDepositAddress(symbol);
+            var response = kuCoin.GetDepositAddress(symbol);
 
             var dictionary = new Dictionary<string, string>();
             dictionary.Add("address", response);
@@ -175,7 +184,7 @@ namespace ExchangeHub.Proxies
 
         public async Task<Dictionary<string, string>> GetDepositAddressAsync(string symbol)
         {
-            var response = await bittrex.GetDepositAddressAsync(symbol);
+            var response = await kuCoin.GetDepositAddressAsync(symbol);
 
             var dictionary = new Dictionary<string, string>();
             dictionary.Add("address", response);
@@ -185,56 +194,60 @@ namespace ExchangeHub.Proxies
 
         public OrderBook GetOrderBook(string symbol, int limit = 100)
         {
-            var response = bittrex.GetOrderBook(symbol);
+            var response = kuCoin.GetOrderBook(symbol);
 
             return TinyMapper.Map<OrderBook>(response);
         }
 
         public async Task<OrderBook> GetOrderBookAsync(string symbol, int limit = 100)
         {
-            var response = await bittrex.GetOrderBookAsync(symbol);
+            var response = await kuCoin.GetOrderBookAsync(symbol);
 
             return TinyMapper.Map<OrderBook>(response);
         }
 
-        public OrderResponse GetOrder(string pair, string orderId, Side side = Side.Buy)
+        public OrderResponse GetOrder(string pair, string orderId, Side side)
         {
-            var response = bittrex.GetOrder(orderId);
+            var tradeType = KuCoinTradeTypeReConverter(side);
+
+            var response = kuCoin.GetOrder(pair, tradeType, Int64.Parse(orderId));
 
             return this.BittrexOrderDetailToOrderResponse(response);
         }
 
-        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side = Side.Buy)
+        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side)
         {
-            var response = await bittrex.GetOrderAsync(orderId);
+            var tradeType = KuCoinTradeTypeReConverter(side);
+
+            var response = await kuCoin.GetOrderAsync(pair, tradeType, Int64.Parse(orderId));
 
             return this.BittrexOrderDetailToOrderResponse(response);
         }
 
         public IEnumerable<OrderResponse> GetOrders(string pair, int limit = 20)
         {
-            var response = bittrex.GetOrderHistory(pair);
+            var response = kuCoin.GetOrderHistory(pair);
 
             return this.BittrexOrderCollectionConverter(response);
         }
 
         public async Task<IEnumerable<OrderResponse>> GetOrdersAsync(string pair, int limit = 20)
         {
-            var response = await bittrex.GetOrderHistoryAsync(pair);
+            var response = await kuCoin.GetOrderHistoryAsync(pair);
 
             return BittrexOrderCollectionConverter(response);
         }
 
         public IEnumerable<OrderResponse> GetOpenOrders(string pair)
         {
-            var response = bittrex.GetOpenOrders(pair);
+            var response = kuCoin.GetOpenOrders(pair);
 
             return this.BittrexOpenOrderCollectionConverter(response);
         }
 
         public async Task<IEnumerable<OrderResponse>> GetOpenOrdersAsync(string pair)
         {
-            var response = await bittrex.GetOpenOrdersAsync(pair);
+            var response = await kuCoin.GetOpenOrdersAsync(pair);
 
             return this.BittrexOpenOrderCollectionConverter(response);
         }

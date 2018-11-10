@@ -51,9 +51,9 @@ namespace ExchangeHub.Contracts
 
         Task<OrderBook> GetOrderBookAsync(string symbol, int limit = 100);
 
-        OrderResponse GetOrder(string pair, string orderId);
+        OrderResponse GetOrder(string pair, string orderId, Side side = Side.Buy);
 
-        Task<OrderResponse> GetOrderAsync(string pair, string orderId);
+        Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side = Side.Buy);
 
         IEnumerable<OrderResponse> GetOrders(string pair, int limit = 20);
 

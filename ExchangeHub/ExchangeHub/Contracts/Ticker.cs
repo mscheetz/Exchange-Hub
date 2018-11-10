@@ -20,7 +20,7 @@ namespace ExchangeHub.Contracts
         public decimal LastPrice { get; set; }
         public decimal PreviousClosePrice { get; set; }
         public decimal WeightedAvgPrice { get; set; }
-        public double PriceChangePercent { get; set; }
+        public decimal PriceChangePercent { get; set; }
         public decimal PriceChange { get; set; }
         public string Pair { get; set; }
     }

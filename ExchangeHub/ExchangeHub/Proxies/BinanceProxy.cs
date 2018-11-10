@@ -185,14 +185,14 @@ namespace ExchangeHub.Proxies
             return TinyMapper.Map<OrderBook>(response);
         }
 
-        public OrderResponse GetOrder(string pair, string orderId)
+        public OrderResponse GetOrder(string pair, string orderId, Side side = Side.Buy)
         {
             var response = binance.GetOrder(pair, Int64.Parse(orderId));
 
             return BinanceOrderResponseToOrderResponse(response);
         }
 
-        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId)
+        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side = Side.Buy)
         {
             var response = await binance.GetOrderAsync(pair, Int64.Parse(orderId));
 

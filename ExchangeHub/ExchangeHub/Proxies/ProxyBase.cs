@@ -85,6 +85,22 @@ namespace ExchangeHub.Proxies
             });
 
             #endregion Bittrex
+
+            #region KuCoin
+            
+            TinyMapper.Bind<KuCoinApi.NetCore.Entities.OrderBook, Contracts.Order>(config =>
+            {
+                config.Bind(source => source.price, target => target.price);
+                config.Bind(source => source.quantity, target => target.quantity);
+            });
+
+            TinyMapper.Bind<KuCoinApi.NetCore.Entities.OrderBookResponse, Contracts.OrderBook>(config =>
+            {
+                config.Bind(source => source.buys, target => target.bids);
+                config.Bind(source => source.sells, target => target.asks);
+            });
+
+            #endregion KuCoin
         }
 
         #region Binance
@@ -157,7 +173,7 @@ namespace ExchangeHub.Proxies
                 OpenTime = _dtHelper.UnixTimeToUTC((long)tick.openTime),
                 PreviousClosePrice = decimal.Parse(tick.prevClosePrice),
                 PriceChange = decimal.Parse(tick.priceChange),
-                PriceChangePercent = double.Parse(tick.priceChangePercent),
+                PriceChangePercent = decimal.Parse(tick.priceChangePercent),
                 Pair = tick.symbol,
                 Volume = decimal.Parse(tick.volume),
                 WeightedAvgPrice = decimal.Parse(tick.weightedAvgPrice),
@@ -170,7 +186,7 @@ namespace ExchangeHub.Proxies
         {
             Contracts.OrderStatus orderStatus;
 
-            switch(binanceStatus)
+            switch (binanceStatus)
             {
                 case Binance.NetCore.Entities.OrderStatus.CANCELED:
                     orderStatus = Contracts.OrderStatus.Canceled;
@@ -546,5 +562,38 @@ namespace ExchangeHub.Proxies
             return bittrexSide;
         }
         #endregion Bittrex
+
+        #region KuCoin
+
+        public Contracts.Ticker KuCoinTickToTicker(KuCoinApi.NetCore.Entities.Tick tick)
+        {
+            var ticker = new Contracts.Ticker
+            {
+                AskPrice = tick.sell,
+                BidPrice = tick.buy,
+                High = tick.high,
+                LastPrice = tick.lastDealPrice,
+                Low = tick.low,
+                Pair = tick.coinType + "-" + tick.coinTypePair,
+                PriceChangePercent = tick.changeRate,
+                Volume = tick.vol
+            };
+
+            return ticker;
+        }
+
+        public KuCoinApi.NetCore.Entities.TradeType KuCoinTradeTypeReConverter(Contracts.Side side)
+        {
+            KuCoinApi.NetCore.Entities.TradeType tradeType = KuCoinApi.NetCore.Entities.TradeType.NONE;
+
+            if (side == Contracts.Side.Buy)
+                tradeType = KuCoinApi.NetCore.Entities.TradeType.BUY;
+            else if (side == Contracts.Side.Sell)
+                tradeType = KuCoinApi.NetCore.Entities.TradeType.SELL;
+
+            return tradeType;
+        }
+
+        #endregion KuCoin
     }
 }
