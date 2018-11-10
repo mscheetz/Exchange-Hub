@@ -17,6 +17,26 @@ namespace ExchangeHub.Proxies
             binance = new BinanceApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
         }
 
+        public IEnumerable<string> GetMarkets()
+        {
+            throw new Exception("Coming soon");
+        }
+
+        public async Task<IEnumerable<string>> GetMarketsAsync()
+        {
+            throw new Exception("Coming soon");
+        }
+
+        public IEnumerable<string> GetMarkets(string baseSymbol)
+        {
+            throw new Exception("Coming soon");
+        }
+
+        public async Task<IEnumerable<string>> GetMarketsAsync(string baseSymbol)
+        {
+            throw new Exception("Coming soon");
+        }
+
         public IEnumerable<Balance> GetBalance()
         {
             var bal = binance.GetBalance();
@@ -149,6 +169,48 @@ namespace ExchangeHub.Proxies
         public async Task<Dictionary<string, string>> GetDepositAddressAsync(string symbol)
         {
             return await binance.GetDepositAddressAsync(symbol);
+        }
+
+        public OrderBook GetOrderBook(string symbol, int limit = 100)
+        {
+            var response = binance.GetOrderBook(symbol, limit);
+
+            return TinyMapper.Map<OrderBook>(response);
+        }
+
+        public async Task<OrderBook> GetOrderBookAsync(string symbol, int limit = 100)
+        {
+            var response = await binance.GetOrderBookAsync(symbol, limit);
+
+            return TinyMapper.Map<OrderBook>(response);
+        }
+
+        public OrderResponse GetOrder(string pair, string orderId)
+        {
+            var response = binance.GetOrder(pair, Int64.Parse(orderId));
+
+            return BinanceOrderResponseToOrderResponse(response);
+        }
+
+        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId)
+        {
+            var response = await binance.GetOrderAsync(pair, Int64.Parse(orderId));
+
+            return BinanceOrderResponseToOrderResponse(response);
+        }
+
+        public IEnumerable<OrderResponse> GetOrders(string pair, int limit = 20)
+        {
+            var response = binance.GetOrders(pair, limit);
+
+            return BinanceOrderResponseCollectionConverter(response);
+        }
+
+        public async Task<IEnumerable<OrderResponse>> GetOrdersAsync(string pair, int limit = 20)
+        {
+            var response = await binance.GetOrdersAsync(pair, limit);
+
+            return BinanceOrderResponseCollectionConverter(response);
         }
 
         public IEnumerable<OrderResponse> GetOpenOrders(string pair)
