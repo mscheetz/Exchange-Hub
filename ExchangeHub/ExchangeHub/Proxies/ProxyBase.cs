@@ -2,6 +2,7 @@
 using Nelibur.ObjectMapper;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ExchangeHub.Proxies
@@ -31,7 +32,7 @@ namespace ExchangeHub.Proxies
                 config.Bind(source => source.price, target => target.Price);
                 config.Bind(source => source.side, target => target.Side);
                 config.Bind(source => source.executedQty, target => target.FilledQuantity);
-                config.Bind(source => source.symbol, target => target.Symbol);
+                config.Bind(source => source.symbol, target => target.Pair);
             });
 
             TinyMapper.Bind<Binance.NetCore.Entities.Orders, Contracts.Order>(config =>
@@ -116,7 +117,7 @@ namespace ExchangeHub.Proxies
                 Price = binanceResponse.price,
                 Side = BinanceTradeTypeConverter(binanceResponse.side),
                 StopPrice = binanceResponse.stopPrice,
-                Symbol = binanceResponse.symbol,
+                Pair = binanceResponse.symbol,
                 TransactTime = _dtHelper.UnixTimeToUTC(binanceResponse.time)
             };
 
@@ -133,7 +134,7 @@ namespace ExchangeHub.Proxies
                 OrderStatus = BinanceOrderStatusConverter(tradeResponse.status),
                 Price = tradeResponse.price,
                 Side = BinanceTradeTypeConverter(tradeResponse.side),
-                Symbol = tradeResponse.symbol,
+                Pair = tradeResponse.symbol,
                 TransactTime = _dtHelper.UnixTimeToUTC(tradeResponse.transactTime)
             };
 
@@ -432,7 +433,7 @@ namespace ExchangeHub.Proxies
                 OrderStatus = orderStatus,
                 Price = bittrexOrder.price,
                 Side = side,
-                Symbol = bittrexOrder.pair
+                Pair = bittrexOrder.pair
             };
 
             return orderResponse;
@@ -473,7 +474,7 @@ namespace ExchangeHub.Proxies
                 OrderStatus = orderStatus,
                 Price = tradeResponse.price,
                 Side = side,
-                Symbol = tradeResponse.pair,
+                Pair = tradeResponse.pair,
                 TransactTime = tradeResponse.opened
             };
 
@@ -515,7 +516,7 @@ namespace ExchangeHub.Proxies
                 OrderStatus = orderStatus,
                 Price = openOrder.price,
                 Side = side,
-                Symbol = openOrder.pair,
+                Pair = openOrder.pair,
                 TransactTime = openOrder.opened
             };
 
@@ -589,7 +590,48 @@ namespace ExchangeHub.Proxies
                 FilledQuantity = old.amount,
                 OrderId = old.orderOid,
                 OrderQuantity = old.amount,
+                Price = old.dealPrice,
+                Side = old.direction.Equals("BUY") ? Contracts.Side.Buy : Contracts.Side.Sell,
+                Pair = old.coinType + "-" + old.coinTypePair,
+                TransactTime = _dtHelper.UnixTimeToUTC(old.createdAt)
+            };
 
+            return orderResponse;
+        }
+
+        public IEnumerable<Contracts.OrderResponse> KuCoinOpenOrderResponseConverter(KuCoinApi.NetCore.Entities.OpenOrderResponse oor, string pair)
+        {
+            var orderResponseList = new List<Contracts.OrderResponse>();
+
+            var openOrderDetailList = new List<KuCoinApi.NetCore.Entities.OpenOrderDetail>();
+            if (oor.openBuys.Length > 0)
+            {
+                openOrderDetailList.AddRange(oor.openBuys.ToList());
+            }
+            if (oor.openSells.Length > 0)
+            {
+                openOrderDetailList.AddRange(oor.openSells.ToList());
+            }
+
+            foreach (var ood in openOrderDetailList)
+            {
+                orderResponseList.Add(KuCoinOpenOrderDetailConverter(ood, pair));
+            }
+
+            return orderResponseList;
+        }
+
+        public Contracts.OrderResponse KuCoinOpenOrderDetailConverter(KuCoinApi.NetCore.Entities.OpenOrderDetail ood, string pair)
+        {
+            var orderResponse = new Contracts.OrderResponse
+            {
+                FilledQuantity = ood.filledQuantity,
+                OrderId = ood.orderId,
+                OrderQuantity = ood.quantity,
+                Price = ood.price,
+                Side = ood.type.Equals("BUY") ? Contracts.Side.Buy : Contracts.Side.Sell,
+                Pair = pair,
+                TransactTime = _dtHelper.UnixTimeToUTC(ood.timestamp)
             };
 
             return orderResponse;

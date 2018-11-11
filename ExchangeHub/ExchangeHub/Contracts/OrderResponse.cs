@@ -6,7 +6,7 @@ namespace ExchangeHub.Contracts
 {
     public class OrderResponse
     {
-        public string Symbol { get; set; }
+        public string Pair { get; set; }
         public string OrderId { get; set; }
         public DateTime TransactTime { get; set; }
         public decimal Price { get; set; }

@@ -120,9 +120,9 @@ namespace ExchangeHub.Proxies
             throw new Exception("Bittrex Api does not offer Stop-Loss orders");
         }
 
-        public OrderResponse CancelOrder(string orderId, string pair)
+        public OrderResponse CancelOrder(string orderId, string pair, Side side = Side.Buy)
         {
-            var response = kuCoin.CancelOrder(orderId);
+            var response = kuCoin.DeleteTrade(pair, orderId, side.ToString().ToUpper());
 
             var orderResponse = new OrderResponse
             {
@@ -131,12 +131,12 @@ namespace ExchangeHub.Proxies
                 OrderStatus = OrderStatus.Canceled
             };
 
-            return response ? orderResponse : null;
+            return response.success ? orderResponse : null;
         }
 
-        public async Task<OrderResponse> CancelOrderAsync(string orderId, string pair)
+        public async Task<OrderResponse> CancelOrderAsync(string orderId, string pair, Side side = Side.Buy)
         {
-            var response = await kuCoin.CancelOrderAsync(orderId);
+            var response = await kuCoin.DeleteTradeAsync(pair, orderId, side.ToString().ToUpper());
 
             var orderResponse = new OrderResponse
             {
@@ -145,7 +145,7 @@ namespace ExchangeHub.Proxies
                 OrderStatus = OrderStatus.Canceled
             };
 
-            return response ? orderResponse : null;
+            return response.success ? orderResponse : null;
         }
 
         public KLine[] GetKLines(string pair, TimeInterval interval, int limit = 20)
@@ -212,7 +212,7 @@ namespace ExchangeHub.Proxies
 
             var response = kuCoin.GetOrder(pair, tradeType, Int64.Parse(orderId));
 
-            return this.BittrexOrderDetailToOrderResponse(response);
+            return this.KuCoinOrderListDetailConverter(response);
         }
 
         public async Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side)
@@ -221,35 +221,49 @@ namespace ExchangeHub.Proxies
 
             var response = await kuCoin.GetOrderAsync(pair, tradeType, Int64.Parse(orderId));
 
-            return this.BittrexOrderDetailToOrderResponse(response);
+            return this.KuCoinOrderListDetailConverter(response);
         }
 
         public IEnumerable<OrderResponse> GetOrders(string pair, int limit = 20)
         {
-            var response = kuCoin.GetOrderHistory(pair);
+            var response = kuCoin.GetOrders(pair, limit);
 
-            return this.BittrexOrderCollectionConverter(response);
+            return this.KuCoinOrderListDetailCollectionConverter(response);
         }
 
         public async Task<IEnumerable<OrderResponse>> GetOrdersAsync(string pair, int limit = 20)
         {
-            var response = await kuCoin.GetOrderHistoryAsync(pair);
+            var response = await kuCoin.GetOrdersAsync(pair, limit);
 
-            return BittrexOrderCollectionConverter(response);
+            return KuCoinOrderListDetailCollectionConverter(response);
         }
 
         public IEnumerable<OrderResponse> GetOpenOrders(string pair)
         {
             var response = kuCoin.GetOpenOrders(pair);
 
-            return this.BittrexOpenOrderCollectionConverter(response);
+            return this.KuCoinOpenOrderResponseConverter(response, pair);
         }
 
         public async Task<IEnumerable<OrderResponse>> GetOpenOrdersAsync(string pair)
         {
             var response = await kuCoin.GetOpenOrdersAsync(pair);
 
-            return this.BittrexOpenOrderCollectionConverter(response);
+            return this.KuCoinOpenOrderResponseConverter(response, pair);
+        }
+
+        private IEnumerable<OrderResponse> KuCoinOrderListDetailCollectionConverter(KuCoinApi.NetCore.Entities.OrderListDetail[] oldArray)
+        {
+            var orderResponseList = new List<OrderResponse>();
+
+            foreach(var old in oldArray)
+            {
+                var orderResponse = KuCoinOrderListDetailConverter(old);
+
+                orderResponseList.Add(orderResponse);
+            }
+
+            return orderResponseList;
         }
 
         private IEnumerable<OrderResponse> BittrexOrderCollectionConverter(BittrexApi.NetCore.Entities.Order[] orderResponseArray)
