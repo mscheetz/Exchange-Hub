@@ -89,40 +89,71 @@ namespace ExchangeHub.Proxies
 
         public OrderResponse MarketOrder(string pair, decimal quantity, Side side)
         {
-            var price = kuCoin.GetTicker(pair).last;
+            var price = this.Get24hrStats(pair).LastPrice;
 
-            BittrexApi.NetCore.Entities.Side kuCoinSide = this.BittrexSideReConverter(side);
+            var tradeParams = new KuCoinApi.NetCore.Entities.TradeParams
+            {
+                price = price,
+                symbol = pair,
+                quantity = quantity,
+                side = side.ToString().ToUpper()
+            };
 
-            var response = kuCoin.PlaceOrder(pair, kuCoinSide, quantity, price);
+            var response = kuCoin.PostTrade(tradeParams);
+            var orderId = response.data["orderOid"];
 
-            return this.GetOrder(string.Empty, response);
+            return this.GetOrder(pair, orderId);
         }
 
         public async Task<OrderResponse> MarketOrderAsync(string pair, decimal quantity, Side side)
         {
-            var ticker = await kuCoin.GetTickerAsync(pair);
-            var price = ticker.last;
+            var ticker = await this.Get24hrStatsAsync(pair);
 
-            BittrexApi.NetCore.Entities.Side kuCoinSide = this.BittrexSideReConverter(side);
+            var price = ticker.LastPrice;
 
-            var response = await kuCoin.PlaceOrderAsync(pair, kuCoinSide, quantity, price);
+            var tradeParams = new KuCoinApi.NetCore.Entities.TradeParams
+            {
+                price = price,
+                symbol = pair,
+                quantity = quantity,
+                side = side.ToString().ToUpper()
+            };
 
-            return this.GetOrder(string.Empty, response);
+            var response = await kuCoin.PostTradeAsync(tradeParams);
+            var orderId = response.data["orderOid"];
+
+            return await this.GetOrderAsync(pair, orderId);
         }
 
         public OrderResponse StopLossOrder(string pair, decimal quantity, decimal stopPrice, Side side)
         {
-            throw new Exception("Bittrex Api does not offer Stop-Loss orders");
+            throw new Exception("KuCoin Api does not offer Stop-Loss orders");
         }
 
         public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal stopPrice, Side side)
         {
-            throw new Exception("Bittrex Api does not offer Stop-Loss orders");
+            throw new Exception("KuCoin Api does not offer Stop-Loss orders");
         }
 
-        public OrderResponse CancelOrder(string orderId, string pair, Side side = Side.Buy)
+        public OrderResponse CancelOrder(string orderId, string pair)
         {
-            var response = kuCoin.DeleteTrade(pair, orderId, side.ToString().ToUpper());
+            var buyResponse = kuCoin.DeleteTrade(pair, orderId, Side.Buy.ToString().ToUpper());
+            var sellResponse = kuCoin.DeleteTrade(pair, orderId, Side.Sell.ToString().ToUpper());
+            
+            var orderResponse = new OrderResponse
+            {
+                OrderId = orderId,
+                TransactTime = DateTime.UtcNow,
+                OrderStatus = OrderStatus.Canceled
+            };
+
+            return buyResponse.success || sellResponse.success ? orderResponse : null;
+        }
+
+        public async Task<OrderResponse> CancelOrderAsync(string orderId, string pair)
+        {
+            var buyResponse = await kuCoin.DeleteTradeAsync(pair, orderId, Side.Buy.ToString().ToUpper());
+            var sellResponse = await kuCoin.DeleteTradeAsync(pair, orderId, Side.Sell.ToString().ToUpper());
 
             var orderResponse = new OrderResponse
             {
@@ -131,21 +162,7 @@ namespace ExchangeHub.Proxies
                 OrderStatus = OrderStatus.Canceled
             };
 
-            return response.success ? orderResponse : null;
-        }
-
-        public async Task<OrderResponse> CancelOrderAsync(string orderId, string pair, Side side = Side.Buy)
-        {
-            var response = await kuCoin.DeleteTradeAsync(pair, orderId, side.ToString().ToUpper());
-
-            var orderResponse = new OrderResponse
-            {
-                OrderId = orderId,
-                TransactTime = DateTime.UtcNow,
-                OrderStatus = OrderStatus.Canceled
-            };
-
-            return response.success ? orderResponse : null;
+            return buyResponse.success || sellResponse.success ? orderResponse : null;
         }
 
         public KLine[] GetKLines(string pair, TimeInterval interval, int limit = 20)
@@ -206,22 +223,35 @@ namespace ExchangeHub.Proxies
             return TinyMapper.Map<OrderBook>(response);
         }
 
-        public OrderResponse GetOrder(string pair, string orderId, Side side)
+        public OrderResponse GetOrder(string pair, string orderId)
         {
-            var tradeType = KuCoinTradeTypeReConverter(side);
+            var buyOrder = kuCoin.GetOrder(pair, KuCoinApi.NetCore.Entities.TradeType.BUY, Int64.Parse(orderId));
 
-            var response = kuCoin.GetOrder(pair, tradeType, Int64.Parse(orderId));
+            if (buyOrder != null)
+            {
+                return this.KuCoinOrderListDetailConverter(buyOrder);
+            }
+            else
+            {
+                var sellOrder = kuCoin.GetOrder(pair, KuCoinApi.NetCore.Entities.TradeType.SELL, Int64.Parse(orderId));
 
-            return this.KuCoinOrderListDetailConverter(response);
+                return this.KuCoinOrderListDetailConverter(sellOrder);
+            }
         }
 
-        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side)
+        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId)
         {
-            var tradeType = KuCoinTradeTypeReConverter(side);
+            var buyOrder = await kuCoin.GetOrderAsync(pair, KuCoinApi.NetCore.Entities.TradeType.BUY, Int64.Parse(orderId));
 
-            var response = await kuCoin.GetOrderAsync(pair, tradeType, Int64.Parse(orderId));
-
-            return this.KuCoinOrderListDetailConverter(response);
+            if (buyOrder != null)
+            {
+                return this.KuCoinOrderListDetailConverter(buyOrder);
+            }
+            else
+            {
+                var sellOrder = await kuCoin.GetOrderAsync(pair, KuCoinApi.NetCore.Entities.TradeType.SELL, Int64.Parse(orderId));
+                return this.KuCoinOrderListDetailConverter(sellOrder);
+            }
         }
 
         public IEnumerable<OrderResponse> GetOrders(string pair, int limit = 20)
@@ -264,59 +294,6 @@ namespace ExchangeHub.Proxies
             }
 
             return orderResponseList;
-        }
-
-        private IEnumerable<OrderResponse> BittrexOrderCollectionConverter(BittrexApi.NetCore.Entities.Order[] orderResponseArray)
-        {
-            var orderResponseList = new List<OrderResponse>();
-
-            foreach(var order in orderResponseArray)
-            {
-                var orderResponse = this.BittrexOrderToOrderResponse(order);
-                orderResponseList.Add(orderResponse);
-            }
-
-            return orderResponseList;
-        }
-
-        private IEnumerable<OrderResponse> BittrexOpenOrderCollectionConverter(BittrexApi.NetCore.Entities.OpenOrder[] orderResponseArray)
-        {
-            var orderResponseList = new List<OrderResponse>();
-
-            foreach (var order in orderResponseArray)
-            {
-                var orderResponse = this.BittrexOpenOrderToOrderResponse(order);
-                orderResponseList.Add(orderResponse);
-            }
-
-            return orderResponseList;
-        }
-
-        public IEnumerable<Balance> BittrexBalanceToBalance(BittrexApi.NetCore.Entities.Balance[] exchangeBalance)
-        {
-            var balanceList = new List<Balance>();
-
-            foreach(var exchangeBal in exchangeBalance)
-            {
-                var balance = TinyMapper.Map<Balance>(exchangeBal);
-                balanceList.Add(balance);
-            }
-
-            return balanceList;
-        }
-
-        public KLine[] BittrexCandlesticksToKLines(Binance.NetCore.Entities.Candlestick[] candlesticks)
-        {
-            var klineList = new List<KLine>();
-
-            foreach(var candlestick in candlesticks)
-            {
-                var kline = this.BinanceCandlestickToKLine(candlestick);
-
-                klineList.Add(kline);
-            }
-
-            return klineList.ToArray();
         }
     }
 }
