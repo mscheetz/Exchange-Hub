@@ -582,6 +582,19 @@ namespace ExchangeHub.Proxies
             return ticker;
         }
 
+        public Contracts.OrderResponse KuCoinOrderListDetailConverter(KuCoinApi.NetCore.Entities.OrderListDetail old)
+        {
+            var orderResponse = new Contracts.OrderResponse
+            {
+                FilledQuantity = old.amount,
+                OrderId = old.orderOid,
+                OrderQuantity = old.amount,
+
+            };
+
+            return orderResponse;
+        }
+
         public KuCoinApi.NetCore.Entities.TradeType KuCoinTradeTypeReConverter(Contracts.Side side)
         {
             KuCoinApi.NetCore.Entities.TradeType tradeType = KuCoinApi.NetCore.Entities.TradeType.NONE;
