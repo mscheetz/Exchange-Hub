@@ -12,6 +12,7 @@ namespace ExchangeHub
     public class ExchangeHub
     {
         private IExchangeProxy proxy;
+        private Exchange _exchange;
 
         /// <summary>
         /// Constructor
@@ -62,6 +63,8 @@ namespace ExchangeHub
                 ApiExtra = apiExtra
             };
 
+            this._exchange = exchange;
+
             if (exchange == Exchange.Binance)
             {
                 proxy = new BinanceProxy(apiInfo);
@@ -86,6 +89,54 @@ namespace ExchangeHub
             {
                 throw new Exception("Switcheo coming soon!");
             }
+        }
+
+        /// <summary>
+        /// Get currently loaded exchange
+        /// </summary>
+        /// <returns>Exchange value</returns>
+        public Exchange GetExchange()
+        {
+            return this._exchange;
+        }
+
+        /// <summary>
+        /// Reload the exchange hub
+        /// </summary>
+        /// <param name="exchange">Exchange to access</param>
+        /// <param name="WIF">Wallet private key WIF</param>
+        /// <returns>Boolean when complete</returns>
+        public bool ReloadExchangeHub(Exchange exchange, string WIF)
+        {
+            LoadExchange(exchange, WIF, string.Empty, string.Empty);
+            return true;
+        }
+
+        /// <summary>
+        /// Reload the exchange hub
+        /// </summary>
+        /// <param name="exchange">Exchange to access</param>
+        /// <param name="apiKey">Api key</param>
+        /// <param name="apiSecret">Api secret</param>
+        /// <returns>Boolean when complete</returns>
+        public bool ReloadExchangeHub(Exchange exchange, string apiKey, string apiSecret)
+        {
+            LoadExchange(exchange, apiKey, apiSecret, string.Empty);
+            return true;
+        }
+
+        /// <summary>
+        /// Reload the exchange hub
+        /// </summary>
+        /// <param name="exchange">Exchange to access</param>
+        /// <param name="apiKey">Api key</param>
+        /// <param name="apiSecret">Api secret</param>
+        /// <param name="apiExtra">Api extra value</param>
+        /// <returns>Boolean when complete</returns>
+        public bool ReloadExchangeHub(Exchange exchange, string apiKey, string apiSecret, string apiExtra)
+        {
+            LoadExchange(exchange, apiKey, apiSecret, apiExtra);
+            return true;
         }
 
         /// <summary>
