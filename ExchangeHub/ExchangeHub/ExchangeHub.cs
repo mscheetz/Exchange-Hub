@@ -2,6 +2,7 @@
 using ExchangeHub.Proxies;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ExchangeHub
@@ -13,6 +14,7 @@ namespace ExchangeHub
     {
         private IExchangeProxy proxy;
         private Exchange _exchange;
+        private List<string> _markets;
 
         /// <summary>
         /// Constructor
@@ -64,6 +66,7 @@ namespace ExchangeHub
             };
 
             this._exchange = exchange;
+            this._markets = new List<string>();
 
             if (exchange == Exchange.Binance)
             {
@@ -140,12 +143,37 @@ namespace ExchangeHub
         }
 
         /// <summary>
+        /// Sets markets in the hub
+        /// </summary>
+        public void SetMarkets()
+        {
+            this._markets = proxy.GetMarkets().ToList();
+        }
+
+        /// <summary>
+        /// Sets markets in the hub
+        /// </summary>
+        public async Task SetMarketsAsync()
+        {
+            var mkts = await proxy.GetMarketsAsync();
+
+            this._markets = mkts.ToList();
+        }
+
+        /// <summary>
         /// Get all markets
         /// </summary>
         /// <returns>Collection of strings</returns>
         public IEnumerable<string> GetMarkets()
         {
-            return proxy.GetMarkets();
+            if (_markets.Count == 0)
+            {
+                return proxy.GetMarkets();
+            }
+            else
+            {
+                return _markets;
+            }
         }
 
         /// <summary>
@@ -154,7 +182,14 @@ namespace ExchangeHub
         /// <returns>Collection of strings</returns>
         public async Task<IEnumerable<string>> GetMarketsAsync()
         {
-            return await proxy.GetMarketsAsync();
+            if (_markets.Count == 0)
+            {
+                return await proxy.GetMarketsAsync();
+            }
+            else
+            {
+                return _markets;
+            }
         }
 
         /// <summary>
@@ -164,7 +199,14 @@ namespace ExchangeHub
         /// <returns>Collection of strings</returns>
         public IEnumerable<string> GetMarkets(string baseSymbol)
         {
-            return proxy.GetMarkets(baseSymbol);
+            if (_markets.Count == 0)
+            {
+                return proxy.GetMarkets(baseSymbol);
+            }
+            else
+            {
+                return _markets.Where(m => m.EndsWith(baseSymbol)).ToList();
+            }
         }
 
         /// <summary>
@@ -174,7 +216,14 @@ namespace ExchangeHub
         /// <returns>Collection of strings</returns>
         public async Task<IEnumerable<string>> GetMarketsAsync(string baseSymbol)
         {
-            return await proxy.GetMarketsAsync(baseSymbol);
+            if (_markets.Count == 0)
+            {
+                return await proxy.GetMarketsAsync(baseSymbol);
+            }
+            else
+            {
+                return _markets.Where(m => m.EndsWith(baseSymbol)).ToList();
+            }
         }
 
         /// <summary>
