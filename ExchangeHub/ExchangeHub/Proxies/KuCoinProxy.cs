@@ -49,57 +49,36 @@ namespace ExchangeHub.Proxies
 
         public IEnumerable<Balance> GetBalance()
         {
-            throw new Exception("Coming soon");
+            var response = kuCoin.GetBalances();
+
+            return TinyMapper.Map<Balance[]>(response);
         }
 
         public async Task<IEnumerable<Balance>> GetBalanceAsync()
         {
-            throw new Exception("Coming soon");
+            var response = await kuCoin.GetBalancesAsync();
+
+            return TinyMapper.Map<Balance[]>(response);
         }
 
         public OrderResponse LimitOrder(string pair, decimal price, decimal quantity, Side side)
         {
-            var parms = new KuCoinApi.NetCore.Entities.TradeParams
-            {
-                price = price,
-                quantity = quantity,
-                side = side.ToString().ToUpper(),
-                symbol = pair
-            };
-
-            var response = kuCoin.PostTrade(parms);
+            var response = kuCoin.LimitOrder(pair, price, quantity, base.KuCoinSideConverter(side));
             
             return this.GetOrder(string.Empty, response.data["orderOid"]);
         }
 
         public async Task<OrderResponse> LimitOrderAsync(string pair, decimal price, decimal quantity, Side side)
         {
-            var parms = new KuCoinApi.NetCore.Entities.TradeParams
-            {
-                price = price,
-                quantity = quantity,
-                side = side.ToString().ToUpper(),
-                symbol = pair
-            };
-
-            var response = await kuCoin.PostTradeAsync(parms);
+            var response = await kuCoin.LimitOrderAsync(pair, price, quantity, base.KuCoinSideConverter(side));
 
             return await this.GetOrderAsync(string.Empty, response.data["orderOid"]);
         }
 
         public OrderResponse MarketOrder(string pair, decimal quantity, Side side)
         {
-            var price = this.Get24hrStats(pair).LastPrice;
+            var response = kuCoin.MarketOrder(pair, quantity, base.KuCoinSideConverter(side));
 
-            var tradeParams = new KuCoinApi.NetCore.Entities.TradeParams
-            {
-                price = price,
-                symbol = pair,
-                quantity = quantity,
-                side = side.ToString().ToUpper()
-            };
-
-            var response = kuCoin.PostTrade(tradeParams);
             var orderId = response.data["orderOid"];
 
             return this.GetOrder(pair, orderId);
@@ -107,19 +86,8 @@ namespace ExchangeHub.Proxies
 
         public async Task<OrderResponse> MarketOrderAsync(string pair, decimal quantity, Side side)
         {
-            var ticker = await this.Get24hrStatsAsync(pair);
+            var response = await kuCoin.MarketOrderAsync(pair, quantity, base.KuCoinSideConverter(side));
 
-            var price = ticker.LastPrice;
-
-            var tradeParams = new KuCoinApi.NetCore.Entities.TradeParams
-            {
-                price = price,
-                symbol = pair,
-                quantity = quantity,
-                side = side.ToString().ToUpper()
-            };
-
-            var response = await kuCoin.PostTradeAsync(tradeParams);
             var orderId = response.data["orderOid"];
 
             return await this.GetOrderAsync(pair, orderId);
@@ -167,12 +135,16 @@ namespace ExchangeHub.Proxies
 
         public KLine[] GetKLines(string pair, TimeInterval interval, int limit = 20)
         {
-            throw new Exception("Bittrex Api does not offer Candlestick/Kline information");
+            var response = kuCoin.GetCandlesticks(pair, base.KuCoinIntervalConverter(interval), limit);
+
+            return base.KuCoinChartValueConverter(response);
         }
 
         public async Task<KLine[]> GetKLinesAsync(string pair, TimeInterval interval, int limit = 20)
         {
-            throw new Exception("Bittrex Api does not offer Candlestick/Kline information");
+            var response = await kuCoin.GetCandlesticksAsync(pair, base.KuCoinIntervalConverter(interval), limit);
+
+            return base.KuCoinChartValueConverter(response);
         }
 
         public Ticker Get24hrStats(string symbol)

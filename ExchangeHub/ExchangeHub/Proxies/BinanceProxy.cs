@@ -3,6 +3,7 @@ using ExchangeHub.Contracts;
 using Nelibur.ObjectMapper;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,29 +13,29 @@ namespace ExchangeHub.Proxies
     {
         public BinanceApiClient binance;
 
-        public BinanceProxy(Contracts.ApiInformation apiInformation)
+        public BinanceProxy(ApiInformation apiInformation)
         {
             binance = new BinanceApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
         }
 
         public IEnumerable<string> GetMarkets()
         {
-            throw new Exception("Coming soon");
+            return binance.GetTradingPairs();
         }
 
         public async Task<IEnumerable<string>> GetMarketsAsync()
         {
-            throw new Exception("Coming soon");
+            return await binance.GetTradingPairsAsync();
         }
 
         public IEnumerable<string> GetMarkets(string baseSymbol)
         {
-            throw new Exception("Coming soon");
+            return binance.GetTradingPairs(baseSymbol);
         }
 
         public async Task<IEnumerable<string>> GetMarketsAsync(string baseSymbol)
         {
-            throw new Exception("Coming soon");
+            return await binance.GetTradingPairsAsync(baseSymbol);
         }
 
         public IEnumerable<Balance> GetBalance()
@@ -185,14 +186,14 @@ namespace ExchangeHub.Proxies
             return TinyMapper.Map<OrderBook>(response);
         }
 
-        public OrderResponse GetOrder(string pair, string orderId, Side side = Side.Buy)
+        public OrderResponse GetOrder(string pair, string orderId)
         {
             var response = binance.GetOrder(pair, Int64.Parse(orderId));
 
             return BinanceOrderResponseToOrderResponse(response);
         }
 
-        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side = Side.Buy)
+        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId)
         {
             var response = await binance.GetOrderAsync(pair, Int64.Parse(orderId));
 

@@ -13,7 +13,7 @@ namespace ExchangeHub.Proxies
     {
         public BittrexClient bittrex;
 
-        public BittrexProxy(Contracts.ApiInformation apiInformation)
+        public BittrexProxy(ApiInformation apiInformation)
         {
             bittrex = new BittrexClient(apiInformation.ApiKey, apiInformation.ApiSecret);
         }
@@ -64,7 +64,7 @@ namespace ExchangeHub.Proxies
         {
             BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
             
-            var response = bittrex.PlaceOrder(pair, bittrexSide, quantity, price);
+            var response = bittrex.LimitOrder(pair, bittrexSide, quantity, price);
 
             return this.GetOrder(string.Empty, response);
         }
@@ -73,30 +73,25 @@ namespace ExchangeHub.Proxies
         {
             BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
 
-            var response = await bittrex.PlaceOrderAsync(pair, bittrexSide, quantity, price);
+            var response = await bittrex.LimitOrderAsync(pair, bittrexSide, quantity, price);
 
             return this.GetOrder(string.Empty, response);
         }
 
         public OrderResponse MarketOrder(string pair, decimal quantity, Side side)
         {
-            var price = bittrex.GetTicker(pair).last;
-
             BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
 
-            var response = bittrex.PlaceOrder(pair, bittrexSide, quantity, price);
+            var response = bittrex.MarketOrder(pair, bittrexSide, quantity);
 
             return this.GetOrder(string.Empty, response);
         }
 
         public async Task<OrderResponse> MarketOrderAsync(string pair, decimal quantity, Side side)
         {
-            var ticker = await bittrex.GetTickerAsync(pair);
-            var price = ticker.last;
-
             BittrexApi.NetCore.Entities.Side bittrexSide = this.BittrexSideReConverter(side);
 
-            var response = await bittrex.PlaceOrderAsync(pair, bittrexSide, quantity, price);
+            var response = await bittrex.MarketOrderAsync(pair, bittrexSide, quantity);
 
             return this.GetOrder(string.Empty, response);
         }
@@ -197,14 +192,14 @@ namespace ExchangeHub.Proxies
             return TinyMapper.Map<OrderBook>(response);
         }
 
-        public OrderResponse GetOrder(string pair, string orderId, Side side = Side.Buy)
+        public OrderResponse GetOrder(string pair, string orderId)
         {
             var response = bittrex.GetOrder(orderId);
 
             return this.BittrexOrderDetailToOrderResponse(response);
         }
 
-        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId, Side side = Side.Buy)
+        public async Task<OrderResponse> GetOrderAsync(string pair, string orderId)
         {
             var response = await bittrex.GetOrderAsync(orderId);
 

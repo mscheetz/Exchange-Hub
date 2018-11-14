@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExchangeHub</name>
+    </assembly>
+    <members>
+        <member name="T:ExchangeHub.ExchangeHub">
+            <summary>
+            Represents ExchangeHub entry
+            </summary>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.#ctor(ExchangeHub.Contracts.Exchange,System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="exchange">Exchange to access</param>
+            <param name="WIF">Wallet private key WIF</param>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.#ctor(ExchangeHub.Contracts.Exchange,System.String,System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="exchange">Exchange to access</param>
+            <param name="apiKey">Api key</param>
+            <param name="apiSecret">Api secret</param>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.#ctor(ExchangeHub.Contracts.Exchange,System.String,System.String,System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="exchange">Exchange to access</param>
+            <param name="apiKey">Api key</param>
+            <param name="apiSecret">Api secret</param>
+            <param name="apiExtra">Api extra value</param>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.LoadExchange(ExchangeHub.Contracts.Exchange,System.String,System.String,System.String)">
+            <summary>
+            Load an exchange
+            </summary>
+            <param name="exchange">Exchange to access</param>
+            <param name="apiKeyWIF">Api key/WIF</param>
+            <param name="apiSecret">Api secret</param>
+            <param name="apiExtra">Api extra value</param>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetMarkets">
+            <summary>
+            Get all markets
+            </summary>
+            <returns>Collection of strings</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetMarketsAsync">
+            <summary>
+            Get all markets
+            </summary>
+            <returns>Collection of strings</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetMarkets(System.String)">
+            <summary>
+            Get all markets for a base symbol
+            </summary>
+            <param name="baseSymbol">Base trading symbol</param>
+            <returns>Collection of strings</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetMarketsAsync(System.String)">
+            <summary>
+            Get all markets for a base symbol
+            </summary>
+            <param name="baseSymbol">Base trading symbol</param>
+            <returns>Collection of strings</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetBalance">
+            <summary>
+            Get Balance of exchange account
+            </summary>
+            <returns>Collection of Balance objects</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetBalanceAsync">
+            <summary>
+            Get Balance of exchange account
+            </summary>
+            <returns>Collection of Balance objects</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.LimitOrder(System.String,System.Decimal,System.Decimal,ExchangeHub.Contracts.Side)">
+            <summary>
+            Place a limit order
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="quantity">Quantity to trade</param>
+            <param name="price">Price of trade</param>
+            <param name="side">Side of trade</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.LimitOrderAsync(System.String,System.Decimal,System.Decimal,ExchangeHub.Contracts.Side)">
+            <summary>
+            Place a limit order
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="quantity">Quantity to trade</param>
+            <param name="price">Price of trade</param>
+            <param name="side">Side of trade</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.MarketOrder(System.String,System.Decimal,ExchangeHub.Contracts.Side)">
+            <summary>
+            Place a market order
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="quantity">Quantity to trade</param>
+            <param name="side">Side of trade</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.MarketOrderAsync(System.String,System.Decimal,ExchangeHub.Contracts.Side)">
+            <summary>
+            Place a market order
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="quantity">Quantity to trade</param>
+            <param name="side">Side of trade</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.StopLossOrder(System.String,System.Decimal,System.Decimal,ExchangeHub.Contracts.Side)">
+            <summary>
+            Place a stop loss order
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="quantity">Quantity to trade</param>
+            <param name="stopPrice">Price of Stop Loss</param>
+            <param name="side">Side of trade</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.StopLossOrderAsync(System.String,System.Decimal,System.Decimal,ExchangeHub.Contracts.Side)">
+            <summary>
+            Place a stop loss order
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="quantity">Quantity to trade</param>
+            <param name="stopPrice">Price of Stop Loss</param>
+            <param name="side">Side of trade</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.CancelOrder(System.String,System.String)">
+            <summary>
+            Cancel an order
+            </summary>
+            <param name="orderId">Order Id</param>
+            <param name="pair">Trading pair of order</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.CancelOrderAsync(System.String,System.String)">
+            <summary>
+            Cancel an order
+            </summary>
+            <param name="orderId">Order Id</param>
+            <param name="pair">Trading pair of order</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetKLines(System.String,ExchangeHub.Contracts.TimeInterval,System.Int32)">
+            <summary>
+            Get KLines for a trading pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="interval">Time interval</param>
+            <param name="limit">Number of klines to return</param>
+            <returns>Collection of KLines</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetKLinesAsync(System.String,ExchangeHub.Contracts.TimeInterval,System.Int32)">
+            <summary>
+            Get KLines for a trading pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="interval">Time interval</param>
+            <param name="limit">Number of klines to return</param>
+            <returns>Collection of KLines</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.Get24hrStats(System.String)">
+            <summary>
+            Get 24 hour stats for a trading pair
+            </summary>
+            <param name="pair">Trading Pair</param>
+            <returns>Ticker object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.Get24hrStatsAsync(System.String)">
+            <summary>
+            Get 24 hour stats for a trading pair
+            </summary>
+            <param name="pair">Trading Pair</param>
+            <returns>Ticker object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetDepositAddress(System.String)">
+            <summary>
+            Get deposit address for a currency
+            </summary>
+            <param name="symbol">Symbol of currency</param>
+            <returns>Dictionary of address</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetDepositAddressAsync(System.String)">
+            <summary>
+            Get deposit address for a currency
+            </summary>
+            <param name="symbol">Symbol of currency</param>
+            <returns>Dictionary of address</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOrderBook(System.String,System.Int32)">
+            <summary>
+            Get order book for a pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="limit">Number of orders to return</param>
+            <returns>Orderbook object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOrderBookAsync(System.String,System.Int32)">
+            <summary>
+            Get order book for a pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="limit">Number of orders to return</param>
+            <returns>Orderbook object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOrder(System.String,System.String)">
+            <summary>
+            Get an order
+            </summary>
+            <param name="pair">Trading pair of order</param>
+            <param name="orderId">Order id</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOrderAsync(System.String,System.String)">
+            <summary>
+            Get an order
+            </summary>
+            <param name="pair">Trading pair of order</param>
+            <param name="orderId">Order id</param>
+            <returns>OrderResponse object</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOrders(System.String,System.Int32)">
+            <summary>
+            Get account orders for a pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="limit">Number of orders to return</param>
+            <returns>Collection of OrderResponse objects</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOrdersAsync(System.String,System.Int32)">
+            <summary>
+            Get account orders for a pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <param name="limit">Number of orders to return</param>
+            <returns>Collection of OrderResponse objects</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOpenOrders(System.String)">
+            <summary>
+            Get account open orders for a pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <returns>Collection of OrderResponse objects</returns>
+        </member>
+        <member name="M:ExchangeHub.ExchangeHub.GetOpenOrdersAsync(System.String)">
+            <summary>
+            Get account open orders for a pair
+            </summary>
+            <param name="pair">Trading pair</param>
+            <returns>Collection of OrderResponse objects</returns>
+        </member>
+    </members>
+</doc>

@@ -101,6 +101,13 @@ namespace ExchangeHub.Proxies
                 config.Bind(source => source.sells, target => target.asks);
             });
 
+            TinyMapper.Bind<KuCoinApi.NetCore.Entities.Balance, Contracts.Balance>(config =>
+            {
+                config.Bind(source => source.balance - source.freezeBalance, target => target.Available);
+                config.Bind(source => source.coinType, target => target.Symbol);
+                config.Bind(source => source.freezeBalance, target => target.Frozen);
+            });
+
             #endregion KuCoin
         }
 
@@ -637,6 +644,28 @@ namespace ExchangeHub.Proxies
             return orderResponse;
         }
 
+        public Contracts.KLine[] KuCoinChartValueConverter(KuCoinApi.NetCore.Entities.ChartValue chartValue)
+        {
+            var klineList = new List<Contracts.KLine>();
+
+            for(int i = 0; i < chartValue.close.Length; i++)
+            {
+                var kline = new Contracts.KLine
+                {
+                    Close = chartValue.close[i],
+                    CloseTime = _dtHelper.UnixTimeToUTC(chartValue.timestamp[i]),
+                    High = chartValue.high[i],
+                    Low = chartValue.low[i],
+                    Open = chartValue.open[i],
+                    Volume = chartValue.volume[i]
+                };
+
+                klineList.Add(kline);
+            }
+
+            return klineList.ToArray();
+        }
+
         public KuCoinApi.NetCore.Entities.TradeType KuCoinTradeTypeReConverter(Contracts.Side side)
         {
             KuCoinApi.NetCore.Entities.TradeType tradeType = KuCoinApi.NetCore.Entities.TradeType.NONE;
@@ -647,6 +676,56 @@ namespace ExchangeHub.Proxies
                 tradeType = KuCoinApi.NetCore.Entities.TradeType.SELL;
 
             return tradeType;
+        }
+
+        public KuCoinApi.NetCore.Entities.Side KuCoinSideConverter(Contracts.Side side)
+        {
+            KuCoinApi.NetCore.Entities.Side kuCoinSide = side == Contracts.Side.Buy 
+                ? KuCoinApi.NetCore.Entities.Side.BUY
+                : KuCoinApi.NetCore.Entities.Side.SELL;
+
+            return kuCoinSide;
+        }
+
+        public KuCoinApi.NetCore.Entities.Interval KuCoinIntervalConverter(Contracts.TimeInterval timeInterval)
+        {
+            switch(timeInterval)
+            {
+                case Contracts.TimeInterval.EightH:
+                    return KuCoinApi.NetCore.Entities.Interval.EightH;
+                case Contracts.TimeInterval.FifteenM:
+                    return KuCoinApi.NetCore.Entities.Interval.FifteenM;
+                case Contracts.TimeInterval.FiveM:
+                    return KuCoinApi.NetCore.Entities.Interval.FiveM;
+                case Contracts.TimeInterval.FourH:
+                    return KuCoinApi.NetCore.Entities.Interval.FourH;
+                case Contracts.TimeInterval.None:
+                    return KuCoinApi.NetCore.Entities.Interval.None;
+                case Contracts.TimeInterval.OneD:
+                    return KuCoinApi.NetCore.Entities.Interval.OneD;
+                case Contracts.TimeInterval.OneH:
+                    return KuCoinApi.NetCore.Entities.Interval.OneH;
+                case Contracts.TimeInterval.OneM:
+                    return KuCoinApi.NetCore.Entities.Interval.OneM;
+                case Contracts.TimeInterval.OneMo:
+                    return KuCoinApi.NetCore.Entities.Interval.OneMo;
+                case Contracts.TimeInterval.OneW:
+                    return KuCoinApi.NetCore.Entities.Interval.OneW;
+                case Contracts.TimeInterval.SixH:
+                    return KuCoinApi.NetCore.Entities.Interval.SixH;
+                case Contracts.TimeInterval.ThirtyM:
+                    return KuCoinApi.NetCore.Entities.Interval.ThirtyM;
+                case Contracts.TimeInterval.ThreeD:
+                    return KuCoinApi.NetCore.Entities.Interval.ThredD;
+                case Contracts.TimeInterval.ThreeM:
+                    return KuCoinApi.NetCore.Entities.Interval.ThreeM;
+                case Contracts.TimeInterval.TwelveH:
+                    return KuCoinApi.NetCore.Entities.Interval.TwelveH;
+                case Contracts.TimeInterval.TwoH:
+                    return KuCoinApi.NetCore.Entities.Interval.TwoH;
+                default:
+                    return KuCoinApi.NetCore.Entities.Interval.None;
+            }
         }
 
         #endregion KuCoin
