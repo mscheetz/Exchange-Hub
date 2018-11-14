@@ -1,6 +1,5 @@
 ﻿using Binance.NetCore;
 using ExchangeHub.Contracts;
-using Nelibur.ObjectMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +16,7 @@ namespace ExchangeHub.Proxies
         {
             binance = new BinanceApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
         }
-
+        
         public IEnumerable<string> GetMarkets()
         {
             return binance.GetTradingPairs();
@@ -176,14 +175,14 @@ namespace ExchangeHub.Proxies
         {
             var response = binance.GetOrderBook(symbol, limit);
 
-            return TinyMapper.Map<OrderBook>(response);
+            return BinanceOrderBookConverter(response);
         }
 
         public async Task<OrderBook> GetOrderBookAsync(string symbol, int limit = 100)
         {
             var response = await binance.GetOrderBookAsync(symbol, limit);
 
-            return TinyMapper.Map<OrderBook>(response);
+            return BinanceOrderBookConverter(response);
         }
 
         public OrderResponse GetOrder(string pair, string orderId)
@@ -247,7 +246,7 @@ namespace ExchangeHub.Proxies
 
             foreach(var exchangeBal in exchangeBalance)
             {
-                var balance = TinyMapper.Map<Balance>(exchangeBal);
+                var balance = BinanceBalanceConverter(exchangeBal);
                 balanceList.Add(balance);
             }
 

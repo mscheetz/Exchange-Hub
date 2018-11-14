@@ -1,7 +1,6 @@
 ﻿using BittrexApi.NetCore;
 using ExchangeHub.Contracts;
 using KuCoinApi.NetCore;
-using Nelibur.ObjectMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace ExchangeHub.Proxies
     {
         public KuCoinApiClient kuCoin;
 
-        public KuCoinProxy(Contracts.ApiInformation apiInformation)
+        public KuCoinProxy(ApiInformation apiInformation)
         {
             kuCoin = new KuCoinApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
         }
@@ -51,14 +50,14 @@ namespace ExchangeHub.Proxies
         {
             var response = kuCoin.GetBalances();
 
-            return TinyMapper.Map<Balance[]>(response);
+            return KuCoinBalanceCollectionConverter(response);
         }
 
         public async Task<IEnumerable<Balance>> GetBalanceAsync()
         {
             var response = await kuCoin.GetBalancesAsync();
 
-            return TinyMapper.Map<Balance[]>(response);
+            return KuCoinBalanceCollectionConverter(response);
         }
 
         public OrderResponse LimitOrder(string pair, decimal price, decimal quantity, Side side)
@@ -185,14 +184,14 @@ namespace ExchangeHub.Proxies
         {
             var response = kuCoin.GetOrderBook(symbol);
 
-            return TinyMapper.Map<OrderBook>(response);
+            return KuCoinOrderBookResponseConverter(response);
         }
 
         public async Task<OrderBook> GetOrderBookAsync(string symbol, int limit = 100)
         {
             var response = await kuCoin.GetOrderBookAsync(symbol);
 
-            return TinyMapper.Map<OrderBook>(response);
+            return KuCoinOrderBookResponseConverter(response);
         }
 
         public OrderResponse GetOrder(string pair, string orderId)

@@ -1,6 +1,5 @@
 ﻿using BittrexApi.NetCore;
 using ExchangeHub.Contracts;
-using Nelibur.ObjectMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -148,14 +147,14 @@ namespace ExchangeHub.Proxies
         {
             var response = bittrex.GetMarketSummary(symbol);
 
-            return TinyMapper.Map<Ticker>(response);
+            return BittrexMarketSummaryConverter(response);
         }
 
         public async Task<Ticker> Get24hrStatsAsync(string symbol)
         {
             var response = await bittrex.GetMarketSummaryAsync(symbol);
 
-            return TinyMapper.Map<Ticker>(response);
+            return BittrexMarketSummaryConverter(response);
         }
 
         public Dictionary<string, string> GetDepositAddress(string symbol)
@@ -182,14 +181,14 @@ namespace ExchangeHub.Proxies
         {
             var response = bittrex.GetOrderBook(symbol);
 
-            return TinyMapper.Map<OrderBook>(response);
+            return BittrexOrderBookConverter(response);
         }
 
         public async Task<OrderBook> GetOrderBookAsync(string symbol, int limit = 100)
         {
             var response = await bittrex.GetOrderBookAsync(symbol);
 
-            return TinyMapper.Map<OrderBook>(response);
+            return BittrexOrderBookConverter(response);
         }
 
         public OrderResponse GetOrder(string pair, string orderId)
@@ -266,7 +265,7 @@ namespace ExchangeHub.Proxies
 
             foreach(var exchangeBal in exchangeBalance)
             {
-                var balance = TinyMapper.Map<Balance>(exchangeBal);
+                var balance = BittrexBalanceConverter(exchangeBal);
                 balanceList.Add(balance);
             }
 

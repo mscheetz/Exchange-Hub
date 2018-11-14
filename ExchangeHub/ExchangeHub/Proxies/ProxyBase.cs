@@ -1,5 +1,4 @@
 ﻿using DateTimeHelpers;
-using Nelibur.ObjectMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,104 +13,74 @@ namespace ExchangeHub.Proxies
         public ProxyBase()
         {
             this._dtHelper = new DateTimeHelper();
-
-            #region Binance
-
-            TinyMapper.Bind<Binance.NetCore.Entities.Balance, Contracts.Balance>(config =>
-            {
-                config.Bind(source => source.asset, target => target.Symbol);
-                config.Bind(source => source.free, target => target.Available);
-                config.Bind(source => source.locked, target => target.Frozen);
-            });
-
-            TinyMapper.Bind<Binance.NetCore.Entities.TradeResponse, Contracts.OrderResponse>(config =>
-            {
-                config.Bind(source => source.executedQty, target => target.FilledQuantity);
-                config.Bind(source => source.orderId, target => target.OrderId);
-                config.Bind(source => source.origQty, target => target.OrderQuantity);
-                config.Bind(source => source.price, target => target.Price);
-                config.Bind(source => source.side, target => target.Side);
-                config.Bind(source => source.executedQty, target => target.FilledQuantity);
-                config.Bind(source => source.symbol, target => target.Pair);
-            });
-
-            TinyMapper.Bind<Binance.NetCore.Entities.Orders, Contracts.Order>(config =>
-            {
-                config.Bind(source => source.price, target => target.price);
-                config.Bind(source => source.quantity, target => target.quantity);
-            });
-
-            TinyMapper.Bind<Binance.NetCore.Entities.OrderBook, Contracts.OrderBook>(config =>
-            {
-                config.Bind(source => source.asks, target => target.asks);
-                config.Bind(source => source.bids, target => target.bids);
-            });
-
-            #endregion Binance
-
-            #region Bittrex
-
-            TinyMapper.Bind<BittrexApi.NetCore.Entities.Balance, Contracts.Balance>(config =>
-            {
-                config.Bind(source => source.symbol, target => target.Symbol);
-                config.Bind(source => source.available, target => target.Available);
-                config.Bind(source => source.pending, target => target.Frozen);
-            });
-
-            TinyMapper.Bind<BittrexApi.NetCore.Entities.OrderInterval, Contracts.Order>(config =>
-            {
-                config.Bind(source => source.quantity, target => target.quantity);
-                config.Bind(source => source.rate, target => target.price);
-            });
-
-            TinyMapper.Bind<BittrexApi.NetCore.Entities.OrderBook, Contracts.OrderBook>(config =>
-            {
-                config.Bind(source => source.buy, target => target.bids);
-                config.Bind(source => source.sell, target => target.asks);
-            });
-
-            TinyMapper.Bind<BittrexApi.NetCore.Entities.MarketSummary, Contracts.Ticker>(config =>
-            {
-                config.Bind(source => source.ask, target => target.AskPrice);
-                config.Bind(source => source.bid, target => target.BidPrice);
-                config.Bind(source => source.created, target => target.OpenTime);
-                config.Bind(source => source.high, target => target.High);
-                config.Bind(source => source.last, target => target.LastPrice);
-                config.Bind(source => source.low, target => target.Low);
-                config.Bind(source => source.marketName, target => target.Pair);
-                config.Bind(source => source.openBuys, target => target.BidQty);
-                config.Bind(source => source.openSells, target => target.AskQty);
-                config.Bind(source => source.prevDay, target => target.Open);
-                config.Bind(source => source.volume, target => target.Volume);
-            });
-
-            #endregion Bittrex
-
-            #region KuCoin
-            
-            TinyMapper.Bind<KuCoinApi.NetCore.Entities.OrderBook, Contracts.Order>(config =>
-            {
-                config.Bind(source => source.price, target => target.price);
-                config.Bind(source => source.quantity, target => target.quantity);
-            });
-
-            TinyMapper.Bind<KuCoinApi.NetCore.Entities.OrderBookResponse, Contracts.OrderBook>(config =>
-            {
-                config.Bind(source => source.buys, target => target.bids);
-                config.Bind(source => source.sells, target => target.asks);
-            });
-
-            TinyMapper.Bind<KuCoinApi.NetCore.Entities.Balance, Contracts.Balance>(config =>
-            {
-                config.Bind(source => source.balance - source.freezeBalance, target => target.Available);
-                config.Bind(source => source.coinType, target => target.Symbol);
-                config.Bind(source => source.freezeBalance, target => target.Frozen);
-            });
-
-            #endregion KuCoin
         }
 
         #region Binance
+
+        public Contracts.Balance BinanceBalanceConverter(Binance.NetCore.Entities.Balance binanceBal)
+        {
+            var balance = new Contracts.Balance
+            {
+                Available = binanceBal.free,
+                Frozen = binanceBal.locked,
+                Symbol = binanceBal.asset
+            };
+
+            return balance;
+        }
+
+        public Contracts.OrderResponse BinanceTradeResponseConverter(Binance.NetCore.Entities.TradeResponse tradeResp)
+        {
+            var orderResponse = new Contracts.OrderResponse
+            {
+                FilledQuantity = tradeResp.executedQty,
+                OrderId = tradeResp.orderId.ToString(),
+                OrderQuantity = tradeResp.orderId,
+                OrderStatus = BinanceOrderStatusConverter(tradeResp.status),
+                Pair = tradeResp.symbol,
+                Price = tradeResp.price,
+                Side = BinanceTradeTypeConverter(tradeResp.side),
+                TransactTime = _dtHelper.UnixTimeToUTC(tradeResp.transactTime)
+            };
+
+            return orderResponse;
+        }
+
+        public Contracts.OrderBook BinanceOrderBookConverter(Binance.NetCore.Entities.OrderBook binanceBook)
+        {
+            var orderBook = new Contracts.OrderBook
+            {
+                asks = BinanceOrderCollectionConverter(binanceBook.asks),
+                bids = BinanceOrderCollectionConverter(binanceBook.bids)
+            };
+
+            return orderBook;
+        }
+
+        public Contracts.Order[] BinanceOrderCollectionConverter(Binance.NetCore.Entities.Orders[] binanceOrders)
+        {
+            var orders = new List<Contracts.Order>();
+
+            for(var i = 0;i< binanceOrders.Length;i++)
+            {
+                var order = BinanceOrderConverter(binanceOrders[i]);
+
+                orders.Add(order);
+            }
+
+            return orders.ToArray();
+        }
+
+        public Contracts.Order BinanceOrderConverter(Binance.NetCore.Entities.Orders binanceOrder)
+        {
+            var order = new Contracts.Order
+            {
+                price = binanceOrder.price,
+                quantity = binanceOrder.quantity
+            };
+
+            return order;
+        }
 
         public Contracts.OrderResponse BinanceOrderResponseToOrderResponse(Binance.NetCore.Entities.OrderResponse binanceResponse)
         {
@@ -412,6 +381,76 @@ namespace ExchangeHub.Proxies
 
         #region Bittrex
 
+        public Contracts.Balance BittrexBalanceConverter(BittrexApi.NetCore.Entities.Balance bittrexBalance)
+        {
+            var balance = new Contracts.Balance
+            {
+                Available = bittrexBalance.available,
+                Frozen = bittrexBalance.pending,
+                Symbol = bittrexBalance.symbol
+            };
+
+            return balance;
+        }
+
+        public Contracts.OrderBook BittrexOrderBookConverter(BittrexApi.NetCore.Entities.OrderBook bittrexBook)
+        {
+            var orderBook = new Contracts.OrderBook
+            {
+                asks = BittrexOrderIntervalCollectionConverter(bittrexBook.sell),
+                bids = BittrexOrderIntervalCollectionConverter(bittrexBook.buy)
+            };
+
+            return orderBook;
+        }
+
+        public Contracts.Order[] BittrexOrderIntervalCollectionConverter(BittrexApi.NetCore.Entities.OrderInterval[] bittrexOrders)
+        {
+            var orders = new List<Contracts.Order>();
+
+            for(var i = 0; i< bittrexOrders.Length;i++)
+            {
+                var order = BittrexOrderIntervalConverter(bittrexOrders[i]);
+
+                orders.Add(order);
+            }
+
+            return orders.ToArray();
+        }
+
+        public Contracts.Order BittrexOrderIntervalConverter(BittrexApi.NetCore.Entities.OrderInterval bittrexOrder)
+        {
+            var order = new Contracts.Order
+            {
+                price = bittrexOrder.rate,
+                quantity = bittrexOrder.quantity
+            };
+
+            return order;
+        }
+
+        public Contracts.Ticker BittrexMarketSummaryConverter(BittrexApi.NetCore.Entities.MarketSummary marketSummary)
+        {
+            var ticker = new Contracts.Ticker
+            {
+                AskPrice = marketSummary.ask,
+                AskQty = marketSummary.openSells,
+                BidPrice = marketSummary.bid,
+                BidQty = marketSummary.openBuys,
+                High = marketSummary.high,
+                LastPrice = marketSummary.last,
+                Low = marketSummary.low,
+                Open = marketSummary.prevDay,
+                OpenTime = marketSummary.created,
+                Pair = marketSummary.marketName,
+                PriceChange = marketSummary.last - marketSummary.prevDay,
+                PriceChangePercent = 1 - (marketSummary.prevDay / marketSummary.last),
+                Volume = marketSummary.volume                
+            };
+
+            return ticker;
+        }
+
         public Contracts.OrderResponse BittrexOrderToOrderResponse(BittrexApi.NetCore.Entities.Order bittrexOrder)
         {
             Contracts.OrderStatus orderStatus;
@@ -572,6 +611,66 @@ namespace ExchangeHub.Proxies
         #endregion Bittrex
 
         #region KuCoin
+
+        public Contracts.OrderBook KuCoinOrderBookResponseConverter(KuCoinApi.NetCore.Entities.OrderBookResponse kuOrderBook)
+        {
+            var orderBook = new Contracts.OrderBook
+            {
+                asks = KuCoinOrderBookCollectionConverter(kuOrderBook.sells),
+                bids = KuCoinOrderBookCollectionConverter(kuOrderBook.buys)
+            };
+
+            return orderBook;
+        }
+
+        public Contracts.Order[] KuCoinOrderBookCollectionConverter(KuCoinApi.NetCore.Entities.OrderBook[] orderBooks)
+        {
+            var orders = new List<Contracts.Order>();
+
+            for(var i =0; i< orderBooks.Length; i++)
+            {
+                var order = KuCoinOrderBookConverter(orderBooks[i]);
+                orders.Add(order);
+            }
+
+            return orders.ToArray();
+        }
+
+        public Contracts.Order KuCoinOrderBookConverter(KuCoinApi.NetCore.Entities.OrderBook orderBook)
+        {
+            var order = new Contracts.Order
+            {
+                price = orderBook.price,
+                quantity = orderBook.quantity
+            };
+
+            return order;
+        }
+
+        public Contracts.Balance[] KuCoinBalanceCollectionConverter(KuCoinApi.NetCore.Entities.Balance[] kuBalances)
+        {
+            var balances = new List<Contracts.Balance>();
+
+            for(var i = 0; i < kuBalances.Length; i++)
+            {
+                var balance = KuCoinBalanceConverter(kuBalances[i]);
+                balances.Add(balance);
+            }
+
+            return balances.ToArray();
+        }
+
+        public Contracts.Balance KuCoinBalanceConverter(KuCoinApi.NetCore.Entities.Balance kuBalance)
+        {
+            var balance = new Contracts.Balance
+            {
+                Available = kuBalance.balance - kuBalance.freezeBalance,
+                Frozen = kuBalance.freezeBalance,
+                Symbol = kuBalance.coinType
+            };
+
+            return balance;
+        }
 
         public Contracts.Ticker KuCoinTickToTicker(KuCoinApi.NetCore.Entities.Tick tick)
         {
