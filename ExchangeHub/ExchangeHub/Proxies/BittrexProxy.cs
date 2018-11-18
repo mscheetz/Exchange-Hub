@@ -95,12 +95,12 @@ namespace ExchangeHub.Proxies
             return this.GetOrder(string.Empty, response);
         }
 
-        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal stopPrice, Side side)
+        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
             throw new Exception("Bittrex Api does not offer Stop-Loss orders");
         }
 
-        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal stopPrice, Side side)
+        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
             throw new Exception("Bittrex Api does not offer Stop-Loss orders");
         }

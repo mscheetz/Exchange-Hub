@@ -87,7 +87,7 @@ namespace ExchangeHub.Proxies
             return this.BinanceTradeResponseToOrderResponse(response);
         }
 
-        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal stopPrice, Side side)
+        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
             Binance.NetCore.Entities.Side binanceSide = this.BinanceSideReConverter(side);
 
@@ -96,7 +96,7 @@ namespace ExchangeHub.Proxies
             return this.BinanceTradeResponseToOrderResponse(response);
         }
 
-        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal stopPrice, Side side)
+        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
             Binance.NetCore.Entities.Side binanceSide = this.BinanceSideReConverter(side);
 

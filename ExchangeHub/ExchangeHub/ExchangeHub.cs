@@ -299,12 +299,13 @@ namespace ExchangeHub
         /// </summary>
         /// <param name="pair">Trading pair</param>
         /// <param name="quantity">Quantity to trade</param>
+        /// <param name="price">Price of order</param>
         /// <param name="stopPrice">Price of Stop Loss</param>
         /// <param name="side">Side of trade</param>
         /// <returns>OrderResponse object</returns>
-        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal stopPrice, Side side)
+        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
-            return proxy.StopLossOrder(pair, quantity, stopPrice, side);
+            return proxy.StopLossOrder(pair, quantity, price, stopPrice, side);
         }
 
         /// <summary>
@@ -312,12 +313,13 @@ namespace ExchangeHub
         /// </summary>
         /// <param name="pair">Trading pair</param>
         /// <param name="quantity">Quantity to trade</param>
+        /// <param name="price">Price of order</param>
         /// <param name="stopPrice">Price of Stop Loss</param>
         /// <param name="side">Side of trade</param>
         /// <returns>OrderResponse object</returns>
-        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal stopPrice, Side side)
+        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
-            return await proxy.StopLossOrderAsync(pair, quantity, stopPrice, side);
+            return await proxy.StopLossOrderAsync(pair, quantity, price, stopPrice, side);
         }
 
         /// <summary>

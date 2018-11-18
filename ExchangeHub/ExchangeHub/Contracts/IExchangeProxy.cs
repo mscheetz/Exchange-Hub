@@ -27,9 +27,9 @@ namespace ExchangeHub.Contracts
 
         Task<OrderResponse> MarketOrderAsync(string pair, decimal quantity, Side side);
 
-        OrderResponse StopLossOrder(string pair, decimal quantity, decimal stopPrice, Side side);
+        OrderResponse StopLossOrder(string pair, decimal quantity, decimal price, decimal stopPrice, Side side);
 
-        Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal stopPrice, Side side);
+        Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal price, decimal stopPrice, Side side);
 
         OrderResponse CancelOrder(string orderId, string pair);
 

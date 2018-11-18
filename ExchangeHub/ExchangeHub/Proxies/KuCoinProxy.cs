@@ -92,12 +92,12 @@ namespace ExchangeHub.Proxies
             return await this.GetOrderAsync(pair, orderId);
         }
 
-        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal stopPrice, Side side)
+        public OrderResponse StopLossOrder(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
             throw new Exception("KuCoin Api does not offer Stop-Loss orders");
         }
 
-        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal stopPrice, Side side)
+        public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
             throw new Exception("KuCoin Api does not offer Stop-Loss orders");
         }
