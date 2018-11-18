@@ -7,6 +7,8 @@ namespace ExchangeHub.Contracts
 {
     public interface IExchangeProxy
     {
+        string FormatPair(string pair, Exchange exchange);
+
         IEnumerable<string> GetMarkets();
 
         Task<IEnumerable<string>> GetMarketsAsync();

@@ -9,10 +9,52 @@ namespace ExchangeHub.Proxies
     public class ProxyBase
     {
         private DateTimeHelper _dtHelper;
+        private Dictionary<string, string> _pairs;
 
         public ProxyBase()
         {
             this._dtHelper = new DateTimeHelper();
+        }
+
+        /// <summary>
+        /// Set trading pairs for exchange
+        /// </summary>
+        /// <param name="pairs">Pairs to set</param>
+        public void SetPairs(string[] pairs)
+        {
+            for (var i = 0; i < pairs.Length; i++)
+            {
+                _pairs.Add(pairs[i].Replace("-", ""), pairs[i]);
+            }
+        }
+
+        /// <summary>
+        /// Get trading pairs for an exchange
+        /// </summary>
+        /// <returns>Dictionary of trading pairs</returns>
+        public Dictionary<string, string> GetPairs()
+        {
+            return _pairs;
+        }
+
+        /// <summary>
+        /// Get formatted trading pair for an exchange
+        /// </summary>
+        /// <param name="pair">Pair to return</param>
+        /// <param name="exchange">Exchange to format</param>
+        /// <returns>String of trading pair</returns>
+        public string FormatPair(string pair, Contracts.Exchange exchange)
+        {
+            if (string.IsNullOrEmpty(pair))
+                return string.Empty;
+
+            else if(exchange == Contracts.Exchange.Binance)
+                return pair.Replace("-", "");
+            
+            else if (pair.IndexOf("-") > 0)
+                return pair;
+
+            return _pairs[pair];
         }
 
         #region Binance

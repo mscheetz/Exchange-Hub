@@ -10,11 +10,12 @@ namespace ExchangeHub.Proxies
 {
     public class BittrexProxy : ProxyBase, IExchangeProxy
     {
-        public BittrexClient bittrex;
+        private BittrexClient bittrex;
 
         public BittrexProxy(ApiInformation apiInformation)
         {
             bittrex = new BittrexClient(apiInformation.ApiKey, apiInformation.ApiSecret);
+            this.SetPairs(GetMarkets().ToArray());
         }
 
         public IEnumerable<string> GetMarkets()

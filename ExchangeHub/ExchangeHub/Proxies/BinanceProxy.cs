@@ -10,11 +10,12 @@ namespace ExchangeHub.Proxies
 {
     public class BinanceProxy : ProxyBase, IExchangeProxy
     {
-        public BinanceApiClient binance;
+        private BinanceApiClient binance;
 
         public BinanceProxy(ApiInformation apiInformation)
         {
             binance = new BinanceApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
+            this.SetPairs(GetMarkets().ToArray());
         }
         
         public IEnumerable<string> GetMarkets()
@@ -91,7 +92,7 @@ namespace ExchangeHub.Proxies
         {
             Binance.NetCore.Entities.Side binanceSide = this.BinanceSideReConverter(side);
 
-            var response = binance.StopLoss(pair, binanceSide, quantity, stopPrice);
+            var response = binance.StopLossLimit(pair, binanceSide, quantity, price, stopPrice, Binance.NetCore.Entities.TimeInForce.GTC);
 
             return this.BinanceTradeResponseToOrderResponse(response);
         }
@@ -100,7 +101,7 @@ namespace ExchangeHub.Proxies
         {
             Binance.NetCore.Entities.Side binanceSide = this.BinanceSideReConverter(side);
 
-            var response = await binance.StopLossAsync(pair, binanceSide, quantity, stopPrice);
+            var response = await binance.StopLossLimitAsync(pair, binanceSide, quantity, price, stopPrice, Binance.NetCore.Entities.TimeInForce.GTC);
 
             return this.BinanceTradeResponseToOrderResponse(response);
         }

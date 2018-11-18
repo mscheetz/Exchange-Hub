@@ -11,11 +11,12 @@ namespace ExchangeHub.Proxies
 {
     public class CoinbaseProProxy : ProxyBase, IExchangeProxy
     {
-        public CoinbaseProClient coinbasePro;
+        private CoinbaseProClient coinbasePro;
 
         public CoinbaseProProxy(ApiInformation apiInformation)
         {
             coinbasePro = new CoinbaseProClient(apiInformation.ApiKey, apiInformation.ApiSecret, apiInformation.ApiExtra);
+            this.SetPairs(GetMarkets().ToArray());
         }
         
         public IEnumerable<string> GetMarkets()

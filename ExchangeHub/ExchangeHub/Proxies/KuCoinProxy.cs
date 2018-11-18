@@ -11,11 +11,12 @@ namespace ExchangeHub.Proxies
 {
     public class KuCoinProxy : ProxyBase, IExchangeProxy
     {
-        public KuCoinApiClient kuCoin;
+        private KuCoinApiClient kuCoin;
 
         public KuCoinProxy(ApiInformation apiInformation)
         {
             kuCoin = new KuCoinApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
+            this.SetPairs(GetMarkets().ToArray());
         }
 
         public IEnumerable<string> GetMarkets()
