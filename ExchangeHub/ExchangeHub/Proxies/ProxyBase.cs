@@ -610,6 +610,194 @@ namespace ExchangeHub.Proxies
         }
         #endregion Bittrex
 
+        #region CoinbasePro
+
+        public Contracts.Balance[] CoinbaseProAccountCollectionConverter(CoinbaseProApi.NetCore.Entities.Account[] accounts)
+        {
+            var balances = new List<Contracts.Balance>();
+
+            foreach(var account in accounts)
+            {
+                var balance = CoinbaseProAccountConverter(account);
+
+                balances.Add(balance);
+            }
+
+            return balances.ToArray();
+        }
+
+        public Contracts.Balance CoinbaseProAccountConverter(CoinbaseProApi.NetCore.Entities.Account account)
+        {
+            var balance = new Contracts.Balance
+            {
+                Available = account.available,
+                Frozen = account.hold,
+                Symbol = account.currency
+            };
+
+            return balance;
+        }
+
+        public Contracts.OrderResponse[] CoinbaseProOrderResponseCollectionConverter(CoinbaseProApi.NetCore.Entities.OrderResponse[] cbResponse)
+        {
+            var orderResponses = new List<Contracts.OrderResponse>();
+
+            for (var i = 0; i < cbResponse.Length; i++)
+            {
+                var orderResponse = CoinbaseProOrderResponseConverter(cbResponse[i]);
+                orderResponses.Add(orderResponse);
+            }
+
+            return orderResponses.ToArray();
+        }
+
+        public Contracts.OrderResponse CoinbaseProOrderResponseConverter(CoinbaseProApi.NetCore.Entities.OrderResponse cbResponse)
+        {
+            var orderResponse = new Contracts.OrderResponse
+            {
+                FilledQuantity = cbResponse.filled_size,
+                OrderId = cbResponse.id,
+                OrderQuantity = cbResponse.filled_size,
+                OrderStatus = CoinbaseProOrderStatusConverter(cbResponse.status),
+                Pair = cbResponse.product_id,
+                Price = cbResponse.price,
+                Side = CoinbaseProSideConverter(cbResponse.side),
+                TransactTime = cbResponse.created_at.DateTime
+            };
+
+            return orderResponse;
+        }
+
+        public Contracts.Ticker CoinbaseProStatsConverter(CoinbaseProApi.NetCore.Entities.PairStats stats)
+        {
+            var ticker = new Contracts.Ticker
+            {
+                High = stats.high,
+                Low = stats.low,
+                Open = stats.open,
+                Volume = stats.volume
+            };
+
+            return ticker;
+        }
+
+        public Contracts.OrderBook CoinbaseProOrderBookResponseConverter(CoinbaseProApi.NetCore.Entities.OrderBookResponse obr)
+        {
+            var orderBook = new Contracts.OrderBook
+            {
+                asks = CoinbaseProOrderBookCollectionConverter(obr.sells),
+                bids = CoinbaseProOrderBookCollectionConverter(obr.buys)
+            };
+
+            return orderBook;
+        }
+
+        public Contracts.Order[] CoinbaseProOrderBookCollectionConverter(CoinbaseProApi.NetCore.Entities.OrderBook[] orderBook)
+        {
+            var orders = new List<Contracts.Order>();
+
+            for (var i = 0; i < orderBook.Length; i++)
+            {
+                var order = CoinbaseProOrderBookConverter(orderBook[i]);
+                orders.Add(order);
+            }
+
+            return orders.ToArray();
+        }
+
+        public Contracts.Order CoinbaseProOrderBookConverter(CoinbaseProApi.NetCore.Entities.OrderBook orderBook)
+        {
+            var order = new Contracts.Order
+            {
+                price = orderBook.price,
+                quantity = orderBook.size
+            };
+
+            return order;
+        }
+
+        public Contracts.OrderResponse CoinbaseProOrderConverter(CoinbaseProApi.NetCore.Entities.Order order)
+        {
+            var orderResonse = new Contracts.OrderResponse
+            {
+                FilledQuantity = order.fill_size,
+                OrderId = order.id,
+                OrderQuantity = order.size,
+                OrderStatus = CoinbaseProOrderStatusConverter(order.status),
+                Pair = order.product_id,
+                Price = order.executed_value,
+                Side = CoinbaseProSideConverter(order.side),
+                TransactTime = order.crated_at.DateTime
+            };
+
+            return orderResonse;
+        }
+
+        public Contracts.OrderStatus CoinbaseProOrderStatusConverter(string status)
+        {
+            Contracts.OrderStatus orderStatus;
+
+            switch(status)
+            {
+                case "open":
+                    orderStatus = Contracts.OrderStatus.Open;
+                    break;
+                case "closed":
+                    orderStatus = Contracts.OrderStatus.Filled;
+                    break;
+                case "active":
+                    orderStatus = Contracts.OrderStatus.PartialFill;
+                    break;
+                default:
+                    orderStatus = Contracts.OrderStatus.Open;
+                    break;
+            }
+
+            return orderStatus;
+        }
+
+        public Contracts.Side CoinbaseProSideConverter(string cbpSide)
+        {
+            Contracts.Side side;
+
+            switch (cbpSide.ToLower())
+            {
+                case "buy":
+                    side = Contracts.Side.Buy;
+                    break;
+                case "sell":
+                    side = Contracts.Side.Sell;
+                    break;
+                default:
+                    side = Contracts.Side.Buy;
+                    break;
+            }
+
+            return side;
+        }
+
+        public CoinbaseProApi.NetCore.Entities.SIDE CoinbaseProSideReConverter(Contracts.Side side)
+        {
+            CoinbaseProApi.NetCore.Entities.SIDE coinbaseSide;
+
+            switch (side)
+            {
+                case Contracts.Side.Buy:
+                    coinbaseSide = CoinbaseProApi.NetCore.Entities.SIDE.BUY;
+                    break;
+                case Contracts.Side.Sell:
+                    coinbaseSide = CoinbaseProApi.NetCore.Entities.SIDE.SELL;
+                    break;
+                default:
+                    coinbaseSide = CoinbaseProApi.NetCore.Entities.SIDE.BUY;
+                    break;
+            }
+
+            return coinbaseSide;
+        }
+
+        #endregion CoinbasePro
+
         #region KuCoin
 
         public Contracts.OrderBook KuCoinOrderBookResponseConverter(KuCoinApi.NetCore.Entities.OrderBookResponse kuOrderBook)

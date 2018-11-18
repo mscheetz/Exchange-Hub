@@ -43,10 +43,10 @@ namespace ExchangeHub
         /// <param name="exchange">Exchange to access</param>
         /// <param name="apiKey">Api key</param>
         /// <param name="apiSecret">Api secret</param>
-        /// <param name="apiExtra">Api extra value</param>
-        public ExchangeHub(Exchange exchange, string apiKey, string apiSecret, string apiExtra)
+        /// <param name="apiPassword">Api password value</param>
+        public ExchangeHub(Exchange exchange, string apiKey, string apiSecret, string apiPassword)
         {
-            LoadExchange(exchange, apiKey, apiSecret, apiExtra);
+            LoadExchange(exchange, apiKey, apiSecret, apiPassword);
         }
 
         /// <summary>
@@ -55,14 +55,14 @@ namespace ExchangeHub
         /// <param name="exchange">Exchange to access</param>
         /// <param name="apiKeyWIF">Api key/WIF</param>
         /// <param name="apiSecret">Api secret</param>
-        /// <param name="apiExtra">Api extra value</param>
-        private void LoadExchange(Exchange exchange, string apiKeyWIF, string apiSecret, string apiExtra)
+        /// <param name="apiPassword">Api password value</param>
+        private void LoadExchange(Exchange exchange, string apiKeyWIF, string apiSecret, string apiPassword)
         {
             var apiInfo = new ApiInformation
             {
                 ApiKey = apiKeyWIF,
                 ApiSecret = apiSecret,
-                ApiExtra = apiExtra
+                ApiExtra = apiPassword
             };
 
             this._exchange = exchange;
@@ -78,7 +78,7 @@ namespace ExchangeHub
             }
             else if (exchange == Exchange.CoinbasePro)
             {
-                throw new Exception("Coinbase Pro coming soon!");
+                proxy = new CoinbaseProProxy(apiInfo);
             }
             else if (exchange == Exchange.CoinEx)
             {
