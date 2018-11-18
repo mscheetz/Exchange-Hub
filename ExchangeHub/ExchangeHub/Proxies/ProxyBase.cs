@@ -82,7 +82,7 @@ namespace ExchangeHub.Proxies
                 OrderStatus = BinanceOrderStatusConverter(tradeResp.status),
                 Pair = tradeResp.symbol,
                 Price = tradeResp.price,
-                Side = BinanceTradeTypeConverter(tradeResp.side),
+                Side = BinanceSideConverter(tradeResp.side),
                 TransactTime = _dtHelper.UnixTimeToUTC(tradeResp.transactTime)
             };
 
@@ -134,7 +134,7 @@ namespace ExchangeHub.Proxies
                 OrderQuantity = binanceResponse.origQty,
                 OrderStatus = BinanceOrderStatusConverter(binanceResponse.status),
                 Price = binanceResponse.price,
-                Side = BinanceTradeTypeConverter(binanceResponse.side),
+                Side = BinanceSideConverter(binanceResponse.side),
                 StopPrice = binanceResponse.stopPrice,
                 Pair = binanceResponse.symbol,
                 TransactTime = _dtHelper.UnixTimeToUTC(binanceResponse.time)
@@ -152,7 +152,7 @@ namespace ExchangeHub.Proxies
                 OrderQuantity = tradeResponse.origQty,
                 OrderStatus = BinanceOrderStatusConverter(tradeResponse.status),
                 Price = tradeResponse.price,
-                Side = BinanceTradeTypeConverter(tradeResponse.side),
+                Side = BinanceSideConverter(tradeResponse.side),
                 Pair = tradeResponse.symbol,
                 TransactTime = _dtHelper.UnixTimeToUTC(tradeResponse.transactTime)
             };
