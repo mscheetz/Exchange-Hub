@@ -14,6 +14,7 @@ namespace ExchangeHub.Proxies
         public ProxyBase()
         {
             this._dtHelper = new DateTimeHelper();
+            this._pairs = new Dictionary<string, string>();
         }
 
         /// <summary>
