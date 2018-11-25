@@ -47,34 +47,48 @@ namespace ExchangeHub.Proxies
 
         public PairPrice GetPrice(string pair)
         {
-            var result = coinbasePro.GetFills();
+            var result = coinbasePro.GetTicker(pair);
 
-            var contract = CoinbaseProFillCollectionConverter(result);
-
-            return contract.Where(c => c.Pair.Equals(pair)).FirstOrDefault();
+            return CoinbaseProTickerConverter(result, pair);
         }
 
         public async Task<PairPrice> GetPriceAsync(string pair)
         {
-            var result = await coinbasePro.GetFillsAsync();
+            var result = await coinbasePro.GetTickerAsync(pair);
 
-            var contract = CoinbaseProFillCollectionConverter(result);
-
-            return contract.Where(c => c.Pair.Equals(pair)).FirstOrDefault();
+            return CoinbaseProTickerConverter(result, pair);
         }
 
         public IEnumerable<PairPrice> GetPrices()
         {
-            var result = coinbasePro.GetFills();
+            var pairPriceList = new List<Contracts.PairPrice>();
 
-            return CoinbaseProFillCollectionConverter(result);
+            foreach(var pair in this.GetPairs())
+            {
+                var pairString = FormatPair(pair.Key, Exchange.CoinbasePro);
+                var result = coinbasePro.GetTicker(pairString);
+                var pairPrice = CoinbaseProTickerConverter(result, pairString);
+
+                pairPriceList.Add(pairPrice);
+            }
+
+            return pairPriceList;
         }
 
         public async Task<IEnumerable<PairPrice>> GetPricesAsync()
         {
-            var result = await coinbasePro.GetFillsAsync();
+            var pairPriceList = new List<Contracts.PairPrice>();
 
-            return CoinbaseProFillCollectionConverter(result);
+            foreach (var pair in this.GetPairs())
+            {
+                var pairString = FormatPair(pair.Key, Exchange.CoinbasePro);
+                var result = await coinbasePro.GetTickerAsync(pairString);
+                var pairPrice = CoinbaseProTickerConverter(result, pairString);
+
+                pairPriceList.Add(pairPrice);
+            }
+
+            return pairPriceList;
         }
 
         public IEnumerable<Balance> GetBalance()

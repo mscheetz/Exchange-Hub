@@ -705,17 +705,15 @@ namespace ExchangeHub.Proxies
 
         #region CoinbasePro
 
-        public IEnumerable<Contracts.PairPrice> CoinbaseProFillCollectionConverter(CoinbaseProApi.NetCore.Entities.Fill[] fills)
+        public Contracts.PairPrice CoinbaseProTickerConverter(CoinbaseProApi.NetCore.Entities.Ticker ticker, string pair)
         {
-            var pairPriceList = new List<Contracts.PairPrice>();
-
-            for(var i = 0;i<fills.Length;i++)
+            var pairPrice = new Contracts.PairPrice
             {
-                var pairPrice = CoinbaseProFillConverter(fills[i]);
-                pairPriceList.Add(pairPrice);
-            }
-
-            return pairPriceList;
+                Pair = pair,
+                Price = ticker.price
+            };
+            
+            return pairPrice;
         }
 
         public Contracts.PairPrice CoinbaseProFillConverter(CoinbaseProApi.NetCore.Entities.Fill fill)
