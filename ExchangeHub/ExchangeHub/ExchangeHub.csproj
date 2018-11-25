@@ -27,7 +27,7 @@ Binance, Bittrex, KuCoin, &amp; more to come!</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.NetCore" Version="1.5.3" />
+    <PackageReference Include="Binance.NetCore" Version="1.5.4" />
     <PackageReference Include="BittrexApi.NetCore" Version="1.2.2" />
     <PackageReference Include="CoinbaseProApi.NetCore" Version="1.1.1" />
     <PackageReference Include="CoinExApi.NetCore" Version="1.1.1" />

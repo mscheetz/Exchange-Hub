@@ -60,6 +60,32 @@ namespace ExchangeHub.Proxies
 
         #region Binance
 
+        public IEnumerable<Contracts.PairPrice> BinanceTickerCollectionConverter(Binance.NetCore.Entities.Ticker[] tickers)
+        {
+
+            var pairPriceList = new List<Contracts.PairPrice>();
+
+            for(var i = 0; i < tickers.Length; i++)
+            {
+                var pairPrice = BinanceTickerConverter(tickers[i]);
+
+                pairPriceList.Add(pairPrice);
+            }
+
+            return pairPriceList;
+        }
+
+        public Contracts.PairPrice BinanceTickerConverter(Binance.NetCore.Entities.Ticker ticker)
+        {
+            var pairPrice = new Contracts.PairPrice
+            {
+                Pair = ticker.Symbol,
+                Price = ticker.Price
+            };
+
+            return pairPrice;
+        }
+
         public Contracts.Balance BinanceBalanceConverter(Binance.NetCore.Entities.Balance binanceBal)
         {
             var balance = new Contracts.Balance
@@ -494,6 +520,30 @@ namespace ExchangeHub.Proxies
             return ticker;
         }
 
+        public IEnumerable<Contracts.PairPrice> BittrexMarketSummaryCollectionToPairPriceConverter(BittrexApi.NetCore.Entities.MarketSummary[] marketSummaries)
+        {
+            var pairPriceList = new List<Contracts.PairPrice>();
+
+            for (var i = 0; i < marketSummaries.Length; i++)
+            {
+                var pairPrice = BittrexMarketSummaryToPairPriceConverter(marketSummaries[i]);
+                pairPriceList.Add(pairPrice);
+            }
+
+            return pairPriceList;
+        }
+
+        public Contracts.PairPrice BittrexMarketSummaryToPairPriceConverter(BittrexApi.NetCore.Entities.MarketSummary marketSummary)
+        {
+            var pairPrice = new Contracts.PairPrice
+            {
+                Pair = marketSummary.pair,                
+                Price = marketSummary.last
+            };
+
+            return pairPrice;
+        }
+
         public Contracts.OrderResponse BittrexOrderToOrderResponse(BittrexApi.NetCore.Entities.Order bittrexOrder)
         {
             Contracts.OrderStatus orderStatus;
@@ -654,6 +704,30 @@ namespace ExchangeHub.Proxies
         #endregion Bittrex
 
         #region CoinbasePro
+
+        public IEnumerable<Contracts.PairPrice> CoinbaseProFillCollectionConverter(CoinbaseProApi.NetCore.Entities.Fill[] fills)
+        {
+            var pairPriceList = new List<Contracts.PairPrice>();
+
+            for(var i = 0;i<fills.Length;i++)
+            {
+                var pairPrice = CoinbaseProFillConverter(fills[i]);
+                pairPriceList.Add(pairPrice);
+            }
+
+            return pairPriceList;
+        }
+
+        public Contracts.PairPrice CoinbaseProFillConverter(CoinbaseProApi.NetCore.Entities.Fill fill)
+        {
+            var pairPrice = new Contracts.PairPrice
+            {
+                Pair = fill.product_id,
+                Price = fill.price
+            };
+
+            return pairPrice;
+        }
 
         public Contracts.Balance[] CoinbaseProAccountCollectionConverter(CoinbaseProApi.NetCore.Entities.Account[] accounts)
         {
@@ -901,6 +975,31 @@ namespace ExchangeHub.Proxies
             };
 
             return balance;
+        }
+        
+        public Contracts.PairPrice KuCoinTickToPairPrice(KuCoinApi.NetCore.Entities.Tick tick)
+        {
+            var pairPrice = new Contracts.PairPrice
+            {
+                Pair = tick.coinType + "-" + tick.coinTypePair,
+                Price = tick.lastDealPrice
+            };
+
+            return pairPrice;
+        }
+
+        public IEnumerable<Contracts.PairPrice> KuCoinTickCollectionToPairPrice(KuCoinApi.NetCore.Entities.Tick[] ticks)
+        {
+            var pairPriceList = new List<Contracts.PairPrice>();
+
+            for(var i =0;i<ticks.Length;i++)
+            {
+                var pairPrice = KuCoinTickToPairPrice(ticks[i]);
+
+                pairPriceList.Add(pairPrice);
+            }
+
+            return pairPriceList;
         }
 
         public Contracts.Ticker KuCoinTickToTicker(KuCoinApi.NetCore.Entities.Tick tick)

@@ -47,6 +47,34 @@ namespace ExchangeHub.Proxies
             return response.Where(r => r.EndsWith(baseSymbol)).ToList();
         }
 
+        public PairPrice GetPrice(string pair)
+        {
+            var result = kuCoin.GetTick(pair);
+
+            return KuCoinTickToPairPrice(result);
+        }
+
+        public async Task<PairPrice> GetPriceAsync(string pair)
+        {
+            var result = await kuCoin.GetTickAsync(pair);
+
+            return KuCoinTickToPairPrice(result);
+        }
+
+        public IEnumerable<PairPrice> GetPrices()
+        {
+            var result = kuCoin.GetTicks();
+
+            return KuCoinTickCollectionToPairPrice(result);
+        }
+
+        public async Task<IEnumerable<PairPrice>> GetPricesAsync()
+        {
+            var result = await kuCoin.GetTicksAsync();
+
+            return KuCoinTickCollectionToPairPrice(result);
+        }
+
         public IEnumerable<Balance> GetBalance()
         {
             var response = kuCoin.GetBalances();

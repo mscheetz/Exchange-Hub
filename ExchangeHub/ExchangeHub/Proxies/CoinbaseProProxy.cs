@@ -45,6 +45,38 @@ namespace ExchangeHub.Proxies
             return pairs.Where(p => p.id.EndsWith(baseSymbol)).Select(p => p.id).ToList();
         }
 
+        public PairPrice GetPrice(string pair)
+        {
+            var result = coinbasePro.GetFills();
+
+            var contract = CoinbaseProFillCollectionConverter(result);
+
+            return contract.Where(c => c.Pair.Equals(pair)).FirstOrDefault();
+        }
+
+        public async Task<PairPrice> GetPriceAsync(string pair)
+        {
+            var result = await coinbasePro.GetFillsAsync();
+
+            var contract = CoinbaseProFillCollectionConverter(result);
+
+            return contract.Where(c => c.Pair.Equals(pair)).FirstOrDefault();
+        }
+
+        public IEnumerable<PairPrice> GetPrices()
+        {
+            var result = coinbasePro.GetFills();
+
+            return CoinbaseProFillCollectionConverter(result);
+        }
+
+        public async Task<IEnumerable<PairPrice>> GetPricesAsync()
+        {
+            var result = await coinbasePro.GetFillsAsync();
+
+            return CoinbaseProFillCollectionConverter(result);
+        }
+
         public IEnumerable<Balance> GetBalance()
         {
             var accounts = coinbasePro.GetAccounts();

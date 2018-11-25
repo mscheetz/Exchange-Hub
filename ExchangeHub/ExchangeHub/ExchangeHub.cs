@@ -229,6 +229,44 @@ namespace ExchangeHub
         }
 
         /// <summary>
+        /// Get lastest price for a trading pair
+        /// </summary>
+        /// <param name="pair">Trading pair</param>
+        /// <returns>PairPrice object</returns>
+        public PairPrice GetLatestPrice(string pair)
+        {
+            return proxy.GetPrice(pair);
+        }
+
+        /// <summary>
+        /// Get lastest price for a trading pair
+        /// </summary>
+        /// <param name="pair">Trading pair</param>
+        /// <returns>PairPrice object</returns>
+        public async Task<PairPrice> GetLatestPriceAsync(string pair)
+        {
+            return await proxy.GetPriceAsync(pair);
+        }
+
+        /// <summary>
+        /// Get lastest prices for all trading pairs
+        /// </summary>
+        /// <returns>Collection of PairPrice</returns>
+        public IEnumerable<PairPrice> GetLatestPrices()
+        {
+            return proxy.GetPrices();
+        }
+
+        /// <summary>
+        /// Get lastest prices for all trading pairs
+        /// </summary>
+        /// <returns>Collection of PairPrice</returns>
+        public async Task<IEnumerable<PairPrice>> GetLatestPricesAsync()
+        {
+            return await proxy.GetPricesAsync();
+        }
+
+        /// <summary>
         /// Get Balance of exchange account
         /// </summary>
         /// <returns>Collection of Balance objects</returns>

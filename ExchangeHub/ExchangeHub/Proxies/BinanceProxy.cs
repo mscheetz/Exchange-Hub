@@ -38,6 +38,34 @@ namespace ExchangeHub.Proxies
             return await binance.GetTradingPairsAsync(baseSymbol);
         }
 
+        public PairPrice GetPrice(string pair)
+        {
+            var result = binance.GetTicker(pair);
+
+            return BinanceTickerConverter(result);
+        }
+
+        public async Task<PairPrice> GetPriceAsync(string pair)
+        {
+            var result = await binance.GetTickerAsync(pair);
+
+            return BinanceTickerConverter(result);
+        }
+
+        public IEnumerable<PairPrice> GetPrices()
+        {
+            var result = binance.GetTickers();
+
+            return BinanceTickerCollectionConverter(result);
+        }
+
+        public async Task<IEnumerable<PairPrice>> GetPricesAsync()
+        {
+            var result = await binance.GetTickersAsync();
+
+            return BinanceTickerCollectionConverter(result);
+        }
+
         public IEnumerable<Balance> GetBalance()
         {
             var bal = binance.GetBalance();

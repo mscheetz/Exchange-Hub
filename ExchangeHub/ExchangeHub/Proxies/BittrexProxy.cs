@@ -46,6 +46,34 @@ namespace ExchangeHub.Proxies
             return response.Where(r => r.pair.EndsWith(baseSymbol)).OrderBy(r => r.pair).Select(r => r.pair).ToList();
         }
 
+        public PairPrice GetPrice(string pair)
+        {
+            var result = bittrex.GetMarketSummary(pair);
+
+            return BittrexMarketSummaryToPairPriceConverter(result);
+        }
+
+        public async Task<PairPrice> GetPriceAsync(string pair)
+        {
+            var result = await bittrex.GetMarketSummaryAsync(pair);
+
+            return BittrexMarketSummaryToPairPriceConverter(result);
+        }
+
+        public IEnumerable<PairPrice> GetPrices()
+        {
+            var result = bittrex.GetMarketSummaries();
+
+            return BittrexMarketSummaryCollectionToPairPriceConverter(result);
+        }
+
+        public async Task<IEnumerable<PairPrice>> GetPricesAsync()
+        {
+            var result = await bittrex.GetMarketSummariesAsync();
+
+            return BittrexMarketSummaryCollectionToPairPriceConverter(result);
+        }
+
         public IEnumerable<Balance> GetBalance()
         {
             var bal = bittrex.GetBalances();

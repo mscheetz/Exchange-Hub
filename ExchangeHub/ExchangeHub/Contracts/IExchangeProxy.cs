@@ -17,6 +17,14 @@ namespace ExchangeHub.Contracts
 
         Task<IEnumerable<string>> GetMarketsAsync(string baseSymbol);
 
+        PairPrice GetPrice(string pair);
+
+        Task<PairPrice> GetPriceAsync(string pair);
+
+        IEnumerable<PairPrice> GetPrices();
+
+        Task<IEnumerable<PairPrice>> GetPricesAsync();
+
         IEnumerable<Balance> GetBalance();
 
         Task<IEnumerable<Balance>> GetBalanceAsync();
