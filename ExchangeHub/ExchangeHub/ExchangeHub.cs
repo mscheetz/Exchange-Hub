@@ -199,7 +199,8 @@ namespace ExchangeHub
         /// <returns>Collection of strings</returns>
         public IEnumerable<string> GetMarkets(string baseSymbol)
         {
-            baseSymbol = proxy.FormatPair(baseSymbol, Exchange.KuCoin);
+            //baseSymbol = proxy.FormatPair(baseSymbol, this._exchange);
+
             if (_markets.Count == 0)
             {
                 return proxy.GetMarkets(baseSymbol);
@@ -217,7 +218,8 @@ namespace ExchangeHub
         /// <returns>Collection of strings</returns>
         public async Task<IEnumerable<string>> GetMarketsAsync(string baseSymbol)
         {
-            baseSymbol = proxy.FormatPair(baseSymbol, Exchange.KuCoin);
+            //baseSymbol = proxy.FormatPair(baseSymbol, this._exchange);
+
             if (_markets.Count == 0)
             {
                 return await proxy.GetMarketsAsync(baseSymbol);
@@ -235,6 +237,8 @@ namespace ExchangeHub
         /// <returns>PairPrice object</returns>
         public PairPrice GetLatestPrice(string pair)
         {
+            pair = proxy.FormatPair(pair, this._exchange);
+
             return proxy.GetPrice(pair);
         }
 
@@ -245,6 +249,8 @@ namespace ExchangeHub
         /// <returns>PairPrice object</returns>
         public async Task<PairPrice> GetLatestPriceAsync(string pair)
         {
+            pair = proxy.FormatPair(pair, this._exchange);
+
             return await proxy.GetPriceAsync(pair);
         }
 
@@ -294,7 +300,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public OrderResponse LimitOrder(string pair, decimal quantity, decimal price, Side side)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.LimitOrder(pair, quantity, price, side);
         }
@@ -309,7 +315,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public async Task<OrderResponse> LimitOrderAsync(string pair, decimal quantity, decimal price, Side side)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.LimitOrderAsync(pair, quantity, price, side);
         }
@@ -323,7 +329,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public OrderResponse MarketOrder(string pair, decimal quantity, Side side)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.MarketOrder(pair, quantity, side);
         }
@@ -337,7 +343,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public async Task<OrderResponse> MarketOrderAsync(string pair, decimal quantity, Side side)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.MarketOrderAsync(pair, quantity, side);
         }
@@ -353,7 +359,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public OrderResponse StopLossOrder(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.StopLossOrder(pair, quantity, price, stopPrice, side);
         }
@@ -369,7 +375,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.StopLossOrderAsync(pair, quantity, price, stopPrice, side);
         }
@@ -382,7 +388,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public OrderResponse CancelOrder(string orderId, string pair)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.CancelOrder(orderId, pair);
         }
@@ -395,7 +401,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public async Task<OrderResponse> CancelOrderAsync(string orderId, string pair)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.CancelOrderAsync(orderId, pair);
         }
@@ -409,7 +415,7 @@ namespace ExchangeHub
         /// <returns>Collection of KLines</returns>
         public KLine[] GetKLines(string pair, TimeInterval interval, int limit = 20)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.GetKLines(pair, interval, limit);
         }
@@ -423,7 +429,7 @@ namespace ExchangeHub
         /// <returns>Collection of KLines</returns>
         public async Task<KLine[]> GetKLinesAsync(string pair, TimeInterval interval, int limit = 20)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.GetKLinesAsync(pair, interval, limit);
         }
@@ -435,7 +441,7 @@ namespace ExchangeHub
         /// <returns>Ticker object</returns>
         public Ticker Get24hrStats(string pair)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.Get24hrStats(pair);
         }
@@ -447,7 +453,7 @@ namespace ExchangeHub
         /// <returns>Ticker object</returns>
         public async Task<Ticker> Get24hrStatsAsync(string pair)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.Get24hrStatsAsync(pair);
         }
@@ -480,7 +486,7 @@ namespace ExchangeHub
         /// <returns>Orderbook object</returns>
         public OrderBook GetOrderBook(string pair, int limit = 100)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.GetOrderBook(pair, limit);
         }
@@ -493,7 +499,7 @@ namespace ExchangeHub
         /// <returns>Orderbook object</returns>
         public async Task<OrderBook> GetOrderBookAsync(string pair, int limit = 100)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.GetOrderBookAsync(pair, limit);
         }
@@ -506,7 +512,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public OrderResponse GetOrder(string pair, string orderId)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.GetOrder(pair, orderId);
         }
@@ -519,7 +525,7 @@ namespace ExchangeHub
         /// <returns>OrderResponse object</returns>
         public async Task<OrderResponse> GetOrderAsync(string pair, string orderId)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.GetOrderAsync(pair, orderId);
         }
@@ -532,7 +538,7 @@ namespace ExchangeHub
         /// <returns>Collection of OrderResponse objects</returns>
         public IEnumerable<OrderResponse> GetOrders(string pair, int limit = 20)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.GetOrders(pair, limit);
         }
@@ -545,7 +551,7 @@ namespace ExchangeHub
         /// <returns>Collection of OrderResponse objects</returns>
         public async Task<IEnumerable<OrderResponse>> GetOrdersAsync(string pair, int limit = 20)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.GetOrdersAsync(pair, limit);
         }
@@ -557,7 +563,7 @@ namespace ExchangeHub
         /// <returns>Collection of OrderResponse objects</returns>
         public IEnumerable<OrderResponse> GetOpenOrders(string pair)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return proxy.GetOpenOrders(pair);
         }
@@ -569,7 +575,7 @@ namespace ExchangeHub
         /// <returns>Collection of OrderResponse objects</returns>
         public async Task<IEnumerable<OrderResponse>> GetOpenOrdersAsync(string pair)
         {
-            pair = proxy.FormatPair(pair, Exchange.KuCoin);
+            pair = proxy.FormatPair(pair, this._exchange);
 
             return await proxy.GetOpenOrdersAsync(pair);
         }
