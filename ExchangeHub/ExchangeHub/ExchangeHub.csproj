@@ -2,17 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.1.6</Version>
+    <Version>0.1.7</Version>
     <Authors>Matt Scheetz</Authors>
     <Company>Matt Scheetz</Company>
     <Description>ExchangeHub for interacting with multiple cryptocurrency exchange api built using .Net Standard:
-Binance, Bittrex, KuCoin, &amp; more to come!</Description>
+Binance, Bittrex, Coinbase Pro, KuCoin, &amp; more to come!</Description>
     <Copyright>2018 Matt Scheetz</Copyright>
     <PackageLicenseUrl>https://github.com/mscheetz/Exchange-Hub/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/mscheetz/Exchange-Hub</PackageProjectUrl>
     <RepositoryUrl>https://github.com/mscheetz/Exchange-Hub</RepositoryUrl>
-    <PackageTags>bitcoin .netstandard binance bittrex kucoin ethereum cryptocurrency exchange</PackageTags>
-    <PackageReleaseNotes>Formatting trading pairs and refactoring</PackageReleaseNotes>
+    <PackageTags>bitcoin .netstandard binance bittrex kucoin coinbase ethereum cryptocurrency exchange</PackageTags>
+    <PackageReleaseNotes>New Get Latest Prices endpoints</PackageReleaseNotes>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
