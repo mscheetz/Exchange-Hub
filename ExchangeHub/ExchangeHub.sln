@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExchangeHub", "ExchangeHub\ExchangeHub.csproj", "{91EB06A0-3E9D-4D0B-A5F8-CA047FD8EA4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExchangeHub", "ExchangeHub\ExchangeHub.csproj", "{91EB06A0-3E9D-4D0B-A5F8-CA047FD8EA4B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{28F41CA5-4135-4E89-857E-BCF6903C85C3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hub", "Hub", "{940EB072-7BA2-4543-AAE5-B75BE301E14B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExchangeHub.Tests", "ExchangeHub.Tests\ExchangeHub.Tests.csproj", "{64415BF4-DDC9-4E16-8E1A-83370A387986}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +21,17 @@ Global
 		{91EB06A0-3E9D-4D0B-A5F8-CA047FD8EA4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91EB06A0-3E9D-4D0B-A5F8-CA047FD8EA4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91EB06A0-3E9D-4D0B-A5F8-CA047FD8EA4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64415BF4-DDC9-4E16-8E1A-83370A387986}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64415BF4-DDC9-4E16-8E1A-83370A387986}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64415BF4-DDC9-4E16-8E1A-83370A387986}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64415BF4-DDC9-4E16-8E1A-83370A387986}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{91EB06A0-3E9D-4D0B-A5F8-CA047FD8EA4B} = {940EB072-7BA2-4543-AAE5-B75BE301E14B}
+		{64415BF4-DDC9-4E16-8E1A-83370A387986} = {28F41CA5-4135-4E89-857E-BCF6903C85C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA8088DC-6E20-4D46-939F-A7152C196A7A}
