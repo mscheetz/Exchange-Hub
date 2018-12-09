@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.1.8</Version>
+    <Version>0.1.9</Version>
     <Authors>Matt Scheetz</Authors>
     <Company>Matt Scheetz</Company>
     <Description>ExchangeHub for interacting with multiple cryptocurrency exchange api built using .Net Standard:
@@ -32,7 +32,7 @@ Binance, Bittrex, Coinbase Pro, KuCoin, &amp; more to come!</Description>
     <PackageReference Include="CoinbaseProApi.NetCore" Version="1.1.1" />
     <PackageReference Include="CoinExApi.NetCore" Version="1.1.1" />
     <PackageReference Include="DateTimeHelpers" Version="1.3.2" />
-    <PackageReference Include="KuCoinApi.NetCore" Version="1.5.4" />
+    <PackageReference Include="KuCoinApi.NetCore" Version="1.5.5" />
     <PackageReference Include="SwitcheoApi.NetCore" Version="1.3.1" />
   </ItemGroup>
 
