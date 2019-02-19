@@ -1,6 +1,5 @@
-﻿using BittrexApi.NetCore;
-using ExchangeHub.Contracts;
-using KuCoinApi.NetCore;
+﻿using ExchangeHub.Contracts;
+using KuCoinApi.Net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,284 +10,241 @@ namespace ExchangeHub.Proxies
 {
     public class KuCoinProxy : ProxyBase, IExchangeProxy
     {
-        private KuCoinApiClient kuCoin;
+        private KuCoinDotNet kuCoin;
 
         public KuCoinProxy(ApiInformation apiInformation)
         {
-            kuCoin = new KuCoinApiClient(apiInformation.ApiKey, apiInformation.ApiSecret);
+            if(string.IsNullOrEmpty(apiInformation.ApiExtra))
+            {
+                throw new Exception("Exchange password is missing.");
+            }
+            kuCoin = new KuCoinDotNet(apiInformation.ApiKey, apiInformation.ApiSecret, apiInformation.ApiExtra);
             this.SetPairs(GetMarkets().ToArray());
         }
 
         public IEnumerable<string> GetMarkets()
         {
-            var response = kuCoin.GetMarkets();
-
-            return response.ToList();
+            return this.GetMarketsAsync().Result;
         }
 
         public async Task<IEnumerable<string>> GetMarketsAsync()
         {
-            var response = await kuCoin.GetMarketsAsync();
+            var response = await kuCoin.GetMarkets();
 
-            return response.ToList();
+            return response;
         }
 
         public IEnumerable<string> GetMarkets(string baseSymbol)
         {
-            var response = kuCoin.GetMarkets();
-
-            return response.Where(r => r.EndsWith(baseSymbol)).ToList();
+            return this.GetMarketsAsync(baseSymbol).Result;
         }
 
         public async Task<IEnumerable<string>> GetMarketsAsync(string baseSymbol)
         {
-            var response = await kuCoin.GetMarketsAsync();
+            var response = await kuCoin.GetMarkets();
 
             return response.Where(r => r.EndsWith(baseSymbol)).ToList();
         }
 
         public PairPrice GetPrice(string pair)
         {
-            var result = kuCoin.GetTick(pair);
-
-            return KuCoinTickToPairPrice(result);
+            return this.GetPriceAsync(pair).Result;
         }
 
         public async Task<PairPrice> GetPriceAsync(string pair)
         {
-            var result = await kuCoin.GetTickAsync(pair);
+            var result = await kuCoin.Get24HrStats(pair);
 
-            return KuCoinTickToPairPrice(result);
+            return KuCoinStatsToPairPrice(result);
         }
 
         public IEnumerable<PairPrice> GetPrices()
         {
-            var result = kuCoin.GetTicks();
-
-            return KuCoinTickCollectionToPairPrice(result);
+            return this.GetPricesAsync().Result;
         }
 
         public async Task<IEnumerable<PairPrice>> GetPricesAsync()
         {
-            var result = await kuCoin.GetTicksAsync();
+            var tradingPairStats = new List<KuCoinApi.Net.Entities.TradingPairStats>();
+            var pairs = await this.GetMarketsAsync();
+            foreach (var pair in pairs)
+            {
+                var stats = await kuCoin.Get24HrStats(pair);
+                tradingPairStats.Add(stats);
+            }
 
-            return KuCoinTickCollectionToPairPrice(result);
+            return KuCoinStatsCollectionToPairPrice(tradingPairStats);
         }
 
         public IEnumerable<Balance> GetBalance()
         {
-            var response = kuCoin.GetBalances();
-
-            return KuCoinBalanceCollectionConverter(response);
+            return this.GetBalanceAsync().Result;
         }
 
         public async Task<IEnumerable<Balance>> GetBalanceAsync()
         {
-            var response = await kuCoin.GetBalancesAsync();
+            var response = await kuCoin.GetBalances();
 
             return KuCoinBalanceCollectionConverter(response);
         }
 
         public OrderResponse LimitOrder(string pair, decimal price, decimal quantity, Side side)
         {
-            var response = kuCoin.LimitOrder(pair, price, quantity, base.KuCoinSideConverter(side));
-            
-            return this.GetOrder(string.Empty, response.data["orderOid"]);
+            return this.LimitOrderAsync(pair, price, quantity, side).Result;
         }
 
         public async Task<OrderResponse> LimitOrderAsync(string pair, decimal price, decimal quantity, Side side)
         {
-            var response = await kuCoin.LimitOrderAsync(pair, price, quantity, base.KuCoinSideConverter(side));
+            var response = await kuCoin.PlaceLimitOrder(pair, base.KuCoinSideConverter(side), price, quantity);
 
-            return await this.GetOrderAsync(string.Empty, response.data["orderOid"]);
+            return await this.GetOrderAsync(string.Empty, response);
         }
 
         public OrderResponse MarketOrder(string pair, decimal quantity, Side side)
         {
-            var response = kuCoin.MarketOrder(pair, quantity, base.KuCoinSideConverter(side));
-
-            var orderId = response.data["orderOid"];
-
-            return this.GetOrder(pair, orderId);
+            return this.MarketOrderAsync(pair, quantity, side).Result;
         }
 
         public async Task<OrderResponse> MarketOrderAsync(string pair, decimal quantity, Side side)
         {
-            var response = await kuCoin.MarketOrderAsync(pair, quantity, base.KuCoinSideConverter(side));
+            var response = await kuCoin.PlaceMarketOrder(pair, base.KuCoinSideConverter(side), quantity);
 
-            var orderId = response.data["orderOid"];
+            var orderId = response;
 
             return await this.GetOrderAsync(pair, orderId);
         }
 
         public OrderResponse StopLossOrder(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
-            throw new Exception("KuCoin Api does not offer Stop-Loss orders");
+            return this.StopLossOrderAsync(pair, quantity, price, stopPrice, side).Result;
         }
 
         public async Task<OrderResponse> StopLossOrderAsync(string pair, decimal quantity, decimal price, decimal stopPrice, Side side)
         {
-            throw new Exception("KuCoin Api does not offer Stop-Loss orders");
+            var response = await kuCoin.PlaceStopOrder(pair, base.KuCoinSideConverter(side), price, quantity, stopPrice, KuCoinApi.Net.Entities.StopType.LOSS);
+            
+            return await this.GetOrderAsync(pair, response);
         }
 
         public OrderResponse CancelOrder(string orderId, string pair)
         {
-            var buyResponse = kuCoin.DeleteTrade(pair, orderId, Side.Buy.ToString().ToUpper());
-            var sellResponse = kuCoin.DeleteTrade(pair, orderId, Side.Sell.ToString().ToUpper());
-            
-            var orderResponse = new OrderResponse
-            {
-                OrderId = orderId,
-                TransactTime = DateTime.UtcNow,
-                OrderStatus = OrderStatus.Canceled
-            };
-
-            return buyResponse.success || sellResponse.success ? orderResponse : null;
+            return this.CancelOrderAsync(orderId, pair).Result;
         }
 
         public async Task<OrderResponse> CancelOrderAsync(string orderId, string pair)
         {
-            var buyResponse = await kuCoin.DeleteTradeAsync(pair, orderId, Side.Buy.ToString().ToUpper());
-            var sellResponse = await kuCoin.DeleteTradeAsync(pair, orderId, Side.Sell.ToString().ToUpper());
+            var response = await kuCoin.CancelOrder(orderId);
 
-            var orderResponse = new OrderResponse
+            if (response != null)
             {
-                OrderId = orderId,
-                TransactTime = DateTime.UtcNow,
-                OrderStatus = OrderStatus.Canceled
-            };
+                var orderResponse = new OrderResponse
+                {
+                    OrderId = orderId,
+                    TransactTime = DateTime.UtcNow,
+                    OrderStatus = OrderStatus.Canceled
+                };
 
-            return buyResponse.success || sellResponse.success ? orderResponse : null;
+                return orderResponse;
+            }
+            return null;
         }
 
         public KLine[] GetKLines(string pair, TimeInterval interval, int limit = 20)
         {
-            var response = kuCoin.GetCandlesticks(pair, base.KuCoinIntervalConverter(interval), limit);
-
-            return base.KuCoinChartValueConverter(response);
+            return this.GetKLinesAsync(pair, interval, limit).Result;
         }
 
         public async Task<KLine[]> GetKLinesAsync(string pair, TimeInterval interval, int limit = 20)
         {
-            var response = await kuCoin.GetCandlesticksAsync(pair, base.KuCoinIntervalConverter(interval), limit);
+            var response = await kuCoin.GetCandlestick(pair, base.KuCoinIntervalConverter(interval), limit);
 
-            return base.KuCoinChartValueConverter(response);
+            return base.KuCoinCandlesticksConverter(response, interval);
         }
 
         public Ticker Get24hrStats(string symbol)
         {
-            var response = kuCoin.GetTick(symbol);
-
-            return this.KuCoinTickToTicker(response);
+            return this.Get24hrStatsAsync(symbol).Result;
         }
 
         public async Task<Ticker> Get24hrStatsAsync(string symbol)
         {
-            var response = await kuCoin.GetTickAsync(symbol);
+            var tick = await kuCoin.GetTicker(symbol);
+            var stats = await kuCoin.Get24HrStats(symbol);
 
-            return this.KuCoinTickToTicker(response);
+            return this.KuCoinTickToTicker(tick, stats);
         }
 
         public Dictionary<string, string> GetDepositAddress(string symbol)
         {
-            var response = kuCoin.GetDepositAddress(symbol);
-
-            var dictionary = new Dictionary<string, string>();
-            dictionary.Add("address", response);
-
-            return dictionary;
+            return this.GetDepositAddressAsync(symbol).Result;
         }
 
         public async Task<Dictionary<string, string>> GetDepositAddressAsync(string symbol)
         {
-            var response = await kuCoin.GetDepositAddressAsync(symbol);
+            var response = await kuCoin.GetDepositAddress(symbol);
 
             var dictionary = new Dictionary<string, string>();
-            dictionary.Add("address", response);
+            dictionary.Add("address", response.Address);
+            dictionary.Add("memo", response.Memo);
 
             return dictionary;
         }
 
         public OrderBook GetOrderBook(string symbol, int limit = 100)
         {
-            var response = kuCoin.GetOrderBook(symbol);
-
-            return KuCoinOrderBookResponseConverter(response);
+            return this.GetOrderBookAsync(symbol, limit).Result;
         }
 
         public async Task<OrderBook> GetOrderBookAsync(string symbol, int limit = 100)
         {
-            var response = await kuCoin.GetOrderBookAsync(symbol);
+            var response = await kuCoin.GetPartOrderBook(symbol);
 
-            return KuCoinOrderBookResponseConverter(response);
+            return KuCoinOrderBookConverter(response);
         }
 
         public OrderResponse GetOrder(string pair, string orderId)
         {
-            var buyOrder = kuCoin.GetOrder(pair, KuCoinApi.NetCore.Entities.TradeType.BUY, Int64.Parse(orderId));
-
-            if (buyOrder != null)
-            {
-                return this.KuCoinOrderListDetailConverter(buyOrder);
-            }
-            else
-            {
-                var sellOrder = kuCoin.GetOrder(pair, KuCoinApi.NetCore.Entities.TradeType.SELL, Int64.Parse(orderId));
-
-                return this.KuCoinOrderListDetailConverter(sellOrder);
-            }
+            return this.GetOrderAsync(pair, orderId).Result;
         }
 
         public async Task<OrderResponse> GetOrderAsync(string pair, string orderId)
         {
-            var buyOrder = await kuCoin.GetOrderAsync(pair, KuCoinApi.NetCore.Entities.TradeType.BUY, Int64.Parse(orderId));
+            var order = await kuCoin.GetOrder(orderId);
 
-            if (buyOrder != null)
-            {
-                return this.KuCoinOrderListDetailConverter(buyOrder);
-            }
-            else
-            {
-                var sellOrder = await kuCoin.GetOrderAsync(pair, KuCoinApi.NetCore.Entities.TradeType.SELL, Int64.Parse(orderId));
-                return this.KuCoinOrderListDetailConverter(sellOrder);
-            }
+            return this.KuCoinOrderConverter(order);
         }
 
         public IEnumerable<OrderResponse> GetOrders(string pair, int limit = 20)
         {
-            var response = kuCoin.GetOrders(pair, limit);
-
-            return this.KuCoinOrderListDetailCollectionConverter(response);
+            return this.GetOrdersAsync(pair, limit).Result;
         }
 
         public async Task<IEnumerable<OrderResponse>> GetOrdersAsync(string pair, int limit = 20)
         {
-            var response = await kuCoin.GetOrdersAsync(pair, limit);
+            var response = await kuCoin.GetOrders(pair, limit);
 
-            return KuCoinOrderListDetailCollectionConverter(response);
+            return KuCoinOrderListDetailCollectionConverter(response.Data);
         }
 
         public IEnumerable<OrderResponse> GetOpenOrders(string pair)
         {
-            var response = kuCoin.GetOpenOrders(pair);
-
-            return this.KuCoinOpenOrderResponseConverter(response, pair);
+            return this.GetOpenOrdersAsync(pair).Result;
         }
 
         public async Task<IEnumerable<OrderResponse>> GetOpenOrdersAsync(string pair)
         {
-            var response = await kuCoin.GetOpenOrdersAsync(pair);
+            var response = await kuCoin.GetOpenOrders(pair);
 
-            return this.KuCoinOpenOrderResponseConverter(response, pair);
+            return KuCoinOrderListDetailCollectionConverter(response.Data);
         }
 
-        private IEnumerable<OrderResponse> KuCoinOrderListDetailCollectionConverter(KuCoinApi.NetCore.Entities.OrderListDetail[] oldArray)
+        private IEnumerable<OrderResponse> KuCoinOrderListDetailCollectionConverter(List<KuCoinApi.Net.Entities.Order> orders)
         {
             var orderResponseList = new List<OrderResponse>();
 
-            foreach(var old in oldArray)
+            foreach(var order in orders)
             {
-                var orderResponse = KuCoinOrderListDetailConverter(old);
+                var orderResponse = KuCoinOrderConverter(order);
 
                 orderResponseList.Add(orderResponse);
             }

@@ -1,4 +1,5 @@
 ﻿using DateTimeHelpers;
+using ExchangeHub.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,6 +57,70 @@ namespace ExchangeHub.Proxies
                 return pair;
 
             return _pairs[pair];
+        }
+
+        public long IntervalToMS(TimeInterval interval)
+        {
+            var ms = 0;
+            var second = 1000;
+            var minute = second * 60;
+            var hour = minute * 60;
+            var day = hour * 24;
+
+            switch(interval)
+            {
+                case TimeInterval.EightH:
+                    ms = hour * 8;
+                    break;
+                case TimeInterval.FifteenM:
+                    ms = minute * 15;
+                    break;
+                case TimeInterval.FiveM:
+                    ms = minute * 5;
+                    break;
+                case TimeInterval.FourH:
+                    ms = hour * 4;
+                    break;
+                case TimeInterval.None:
+                    break;
+                case TimeInterval.OneD:
+                    ms = day;
+                    break;
+                case TimeInterval.OneH:
+                    ms = hour;
+                    break;
+                case TimeInterval.OneM:
+                    ms = minute;
+                    break;
+                case TimeInterval.OneMo:
+                    ms = day * 30;
+                    break;
+                case TimeInterval.OneW:
+                    ms = day * 7;
+                    break;
+                case TimeInterval.SixH:
+                    ms = hour * 6;
+                    break;
+                case TimeInterval.ThirtyM:
+                    ms = minute * 30;
+                    break;
+                case TimeInterval.ThreeD:
+                    ms = day * 3;
+                    break;
+                case TimeInterval.ThreeM:
+                    ms = minute * 3;
+                    break;
+                case TimeInterval.TwelveH:
+                    ms = hour * 12;
+                    break;
+                case TimeInterval.TwoH:
+                    ms = hour * 2;
+                    break;
+                default:
+                    break;
+            }
+
+            return ms;
         }
 
         #region Binance
@@ -915,46 +980,39 @@ namespace ExchangeHub.Proxies
 
         #region KuCoin
 
-        public Contracts.OrderBook KuCoinOrderBookResponseConverter(KuCoinApi.NetCore.Entities.OrderBookResponse kuOrderBook)
+        public Contracts.OrderBook KuCoinOrderBookConverter(KuCoinApi.Net.Entities.OrderBookL2 kuOrderBook)
         {
             var orderBook = new Contracts.OrderBook
             {
-                asks = KuCoinOrderBookCollectionConverter(kuOrderBook.sells),
-                bids = KuCoinOrderBookCollectionConverter(kuOrderBook.buys)
+                asks = KuCoinOrderBookCollectionConverter(kuOrderBook.Asks),
+                bids = KuCoinOrderBookCollectionConverter(kuOrderBook.Bids)
             };
 
             return orderBook;
         }
 
-        public Contracts.Order[] KuCoinOrderBookCollectionConverter(KuCoinApi.NetCore.Entities.OrderBook[] orderBooks)
+        public Contracts.Order[] KuCoinOrderBookCollectionConverter(KuCoinApi.Net.Entities.OrderBookDetailL2[] orderBooks)
         {
             var orders = new List<Contracts.Order>();
 
             for(var i =0; i< orderBooks.Length; i++)
             {
-                var order = KuCoinOrderBookConverter(orderBooks[i]);
+                var order = new Order
+                {
+                    price = orderBooks[i].Price,
+                    quantity = orderBooks[i].Size
+                };
                 orders.Add(order);
             }
 
             return orders.ToArray();
         }
 
-        public Contracts.Order KuCoinOrderBookConverter(KuCoinApi.NetCore.Entities.OrderBook orderBook)
-        {
-            var order = new Contracts.Order
-            {
-                price = orderBook.price,
-                quantity = orderBook.quantity
-            };
-
-            return order;
-        }
-
-        public Contracts.Balance[] KuCoinBalanceCollectionConverter(KuCoinApi.NetCore.Entities.Balance[] kuBalances)
+        public Contracts.Balance[] KuCoinBalanceCollectionConverter(List<KuCoinApi.Net.Entities.Balance> kuBalances)
         {
             var balances = new List<Contracts.Balance>();
 
-            for(var i = 0; i < kuBalances.Length; i++)
+            for(var i = 0; i < kuBalances.Count; i++)
             {
                 var balance = KuCoinBalanceConverter(kuBalances[i]);
                 balances.Add(balance);
@@ -963,36 +1021,36 @@ namespace ExchangeHub.Proxies
             return balances.ToArray();
         }
 
-        public Contracts.Balance KuCoinBalanceConverter(KuCoinApi.NetCore.Entities.Balance kuBalance)
+        public Contracts.Balance KuCoinBalanceConverter(KuCoinApi.Net.Entities.Balance kuBalance)
         {
             var balance = new Contracts.Balance
             {
-                Available = kuBalance.balance - kuBalance.freezeBalance,
-                Frozen = kuBalance.freezeBalance,
-                Symbol = kuBalance.coinType
+                Available = kuBalance.Available,
+                Frozen = kuBalance.Frozen,
+                Symbol = kuBalance.Symbol
             };
 
             return balance;
         }
         
-        public Contracts.PairPrice KuCoinTickToPairPrice(KuCoinApi.NetCore.Entities.Tick tick)
+        public Contracts.PairPrice KuCoinStatsToPairPrice(KuCoinApi.Net.Entities.TradingPairStats stats)
         {
             var pairPrice = new Contracts.PairPrice
             {
-                Pair = tick.coinType + "-" + tick.coinTypePair,
-                Price = tick.lastDealPrice
+                Pair = stats.Pair,
+                Price = stats.Close
             };
 
             return pairPrice;
         }
 
-        public IEnumerable<Contracts.PairPrice> KuCoinTickCollectionToPairPrice(KuCoinApi.NetCore.Entities.Tick[] ticks)
+        public IEnumerable<Contracts.PairPrice> KuCoinStatsCollectionToPairPrice(List<KuCoinApi.Net.Entities.TradingPairStats> stats)
         {
             var pairPriceList = new List<Contracts.PairPrice>();
 
-            for(var i =0;i<ticks.Length;i++)
+            for (var i = 0; i < stats.Count; i++)
             {
-                var pairPrice = KuCoinTickToPairPrice(ticks[i]);
+                var pairPrice = KuCoinStatsToPairPrice(stats[i]);
 
                 pairPriceList.Add(pairPrice);
             }
@@ -1000,91 +1058,54 @@ namespace ExchangeHub.Proxies
             return pairPriceList;
         }
 
-        public Contracts.Ticker KuCoinTickToTicker(KuCoinApi.NetCore.Entities.Tick tick)
+        public Contracts.Ticker KuCoinTickToTicker(KuCoinApi.Net.Entities.Ticker tick, KuCoinApi.Net.Entities.TradingPairStats stats)
         {
             var ticker = new Contracts.Ticker
             {
-                AskPrice = tick.sell,
-                BidPrice = tick.buy,
-                High = tick.high,
-                LastPrice = tick.lastDealPrice,
-                Low = tick.low,
-                Pair = tick.coinType + "-" + tick.coinTypePair,
-                PriceChangePercent = tick.changeRate,
-                Volume = tick.vol
+                AskPrice = tick.BestAsk,
+                BidPrice = tick.BestBid,
+                High = stats.High,
+                LastPrice = tick.Price,
+                Low = stats.Low,
+                Pair = stats.Pair,
+                PriceChangePercent = stats.ChangeRate,
+                Volume = stats.Volume
             };
 
             return ticker;
         }
 
-        public Contracts.OrderResponse KuCoinOrderListDetailConverter(KuCoinApi.NetCore.Entities.OrderListDetail old)
+        public Contracts.OrderResponse KuCoinOrderConverter(KuCoinApi.Net.Entities.Order order)
         {
             var orderResponse = new Contracts.OrderResponse
             {
-                FilledQuantity = old.amount,
-                OrderId = old.orderOid,
-                OrderQuantity = old.amount,
-                Price = old.dealPrice,
-                Side = old.direction.Equals("BUY") ? Contracts.Side.Buy : Contracts.Side.Sell,
-                Pair = old.coinType + "-" + old.coinTypePair,
-                TransactTime = _dtHelper.UnixTimeToUTC(old.createdAt)
+                FilledQuantity = order.DealSize,
+                OrderId = order.Id,
+                OrderQuantity = order.Size,
+                Price = order.Price,
+                Side = order.Side.Equals("BUY") ? Contracts.Side.Buy : Contracts.Side.Sell,
+                Pair = order.Pair,
+                TransactTime = _dtHelper.UnixTimeToUTC(order.CreatedAt)
             };
 
             return orderResponse;
         }
-
-        public IEnumerable<Contracts.OrderResponse> KuCoinOpenOrderResponseConverter(KuCoinApi.NetCore.Entities.OpenOrderResponse oor, string pair)
-        {
-            var orderResponseList = new List<Contracts.OrderResponse>();
-
-            var openOrderDetailList = new List<KuCoinApi.NetCore.Entities.OpenOrderDetail>();
-            if (oor.openBuys.Length > 0)
-            {
-                openOrderDetailList.AddRange(oor.openBuys.ToList());
-            }
-            if (oor.openSells.Length > 0)
-            {
-                openOrderDetailList.AddRange(oor.openSells.ToList());
-            }
-
-            foreach (var ood in openOrderDetailList)
-            {
-                orderResponseList.Add(KuCoinOpenOrderDetailConverter(ood, pair));
-            }
-
-            return orderResponseList;
-        }
-
-        public Contracts.OrderResponse KuCoinOpenOrderDetailConverter(KuCoinApi.NetCore.Entities.OpenOrderDetail ood, string pair)
-        {
-            var orderResponse = new Contracts.OrderResponse
-            {
-                FilledQuantity = ood.filledQuantity,
-                OrderId = ood.orderId,
-                OrderQuantity = ood.quantity,
-                Price = ood.price,
-                Side = ood.type.Equals("BUY") ? Contracts.Side.Buy : Contracts.Side.Sell,
-                Pair = pair,
-                TransactTime = _dtHelper.UnixTimeToUTC(ood.timestamp)
-            };
-
-            return orderResponse;
-        }
-
-        public Contracts.KLine[] KuCoinChartValueConverter(KuCoinApi.NetCore.Entities.ChartValue chartValue)
+        
+        public Contracts.KLine[] KuCoinCandlesticksConverter(List<KuCoinApi.Net.Entities.Candlestick> candlesticks, TimeInterval interval)
         {
             var klineList = new List<Contracts.KLine>();
+            var timeDiff = this.IntervalToMS(interval);
 
-            for(int i = 0; i < chartValue.close.Length; i++)
+            for(int i = 0; i < candlesticks.Count; i++)
             {
                 var kline = new Contracts.KLine
                 {
-                    Close = chartValue.close[i],
-                    CloseTime = _dtHelper.UnixTimeToUTC(chartValue.timestamp[i]),
-                    High = chartValue.high[i],
-                    Low = chartValue.low[i],
-                    Open = chartValue.open[i],
-                    Volume = chartValue.volume[i]
+                    Close = candlesticks[i].Close,
+                    CloseTime = _dtHelper.UnixTimeToUTC((candlesticks[i].StartTime + timeDiff)),
+                    High = candlesticks[i].High,
+                    Low = candlesticks[i].Low,
+                    Open = candlesticks[i].Open,
+                    Volume = candlesticks[i].Volume
                 };
 
                 klineList.Add(kline);
@@ -1105,53 +1126,53 @@ namespace ExchangeHub.Proxies
             return tradeType;
         }
 
-        public KuCoinApi.NetCore.Entities.Side KuCoinSideConverter(Contracts.Side side)
+        public KuCoinApi.Net.Entities.Side KuCoinSideConverter(Contracts.Side side)
         {
-            KuCoinApi.NetCore.Entities.Side kuCoinSide = side == Contracts.Side.Buy 
-                ? KuCoinApi.NetCore.Entities.Side.BUY
-                : KuCoinApi.NetCore.Entities.Side.SELL;
+            KuCoinApi.Net.Entities.Side kuCoinSide = side == Contracts.Side.Buy 
+                ? KuCoinApi.Net.Entities.Side.BUY
+                : KuCoinApi.Net.Entities.Side.SELL;
 
             return kuCoinSide;
         }
 
-        public KuCoinApi.NetCore.Entities.Interval KuCoinIntervalConverter(Contracts.TimeInterval timeInterval)
+        public KuCoinApi.Net.Entities.Interval KuCoinIntervalConverter(Contracts.TimeInterval timeInterval)
         {
             switch(timeInterval)
             {
                 case Contracts.TimeInterval.EightH:
-                    return KuCoinApi.NetCore.Entities.Interval.EightH;
+                    return KuCoinApi.Net.Entities.Interval.EightH;
                 case Contracts.TimeInterval.FifteenM:
-                    return KuCoinApi.NetCore.Entities.Interval.FifteenM;
+                    return KuCoinApi.Net.Entities.Interval.FifteenM;
                 case Contracts.TimeInterval.FiveM:
-                    return KuCoinApi.NetCore.Entities.Interval.FiveM;
+                    return KuCoinApi.Net.Entities.Interval.FiveM;
                 case Contracts.TimeInterval.FourH:
-                    return KuCoinApi.NetCore.Entities.Interval.FourH;
+                    return KuCoinApi.Net.Entities.Interval.FourH;
                 case Contracts.TimeInterval.None:
-                    return KuCoinApi.NetCore.Entities.Interval.None;
+                    return KuCoinApi.Net.Entities.Interval.None;
                 case Contracts.TimeInterval.OneD:
-                    return KuCoinApi.NetCore.Entities.Interval.OneD;
+                    return KuCoinApi.Net.Entities.Interval.OneD;
                 case Contracts.TimeInterval.OneH:
-                    return KuCoinApi.NetCore.Entities.Interval.OneH;
+                    return KuCoinApi.Net.Entities.Interval.OneH;
                 case Contracts.TimeInterval.OneM:
-                    return KuCoinApi.NetCore.Entities.Interval.OneM;
+                    return KuCoinApi.Net.Entities.Interval.OneM;
                 case Contracts.TimeInterval.OneMo:
-                    return KuCoinApi.NetCore.Entities.Interval.OneMo;
+                    return KuCoinApi.Net.Entities.Interval.OneW;
                 case Contracts.TimeInterval.OneW:
-                    return KuCoinApi.NetCore.Entities.Interval.OneW;
+                    return KuCoinApi.Net.Entities.Interval.OneW;
                 case Contracts.TimeInterval.SixH:
-                    return KuCoinApi.NetCore.Entities.Interval.SixH;
+                    return KuCoinApi.Net.Entities.Interval.SixH;
                 case Contracts.TimeInterval.ThirtyM:
-                    return KuCoinApi.NetCore.Entities.Interval.ThirtyM;
+                    return KuCoinApi.Net.Entities.Interval.ThirtyM;
                 case Contracts.TimeInterval.ThreeD:
-                    return KuCoinApi.NetCore.Entities.Interval.ThredD;
+                    return KuCoinApi.Net.Entities.Interval.OneW;
                 case Contracts.TimeInterval.ThreeM:
-                    return KuCoinApi.NetCore.Entities.Interval.ThreeM;
+                    return KuCoinApi.Net.Entities.Interval.ThreeM;
                 case Contracts.TimeInterval.TwelveH:
-                    return KuCoinApi.NetCore.Entities.Interval.TwelveH;
+                    return KuCoinApi.Net.Entities.Interval.TwelveH;
                 case Contracts.TimeInterval.TwoH:
-                    return KuCoinApi.NetCore.Entities.Interval.TwoH;
+                    return KuCoinApi.Net.Entities.Interval.TwoH;
                 default:
-                    return KuCoinApi.NetCore.Entities.Interval.None;
+                    return KuCoinApi.Net.Entities.Interval.None;
             }
         }
 
