@@ -1114,18 +1114,6 @@ namespace ExchangeHub.Proxies
             return klineList.ToArray();
         }
 
-        public KuCoinApi.NetCore.Entities.TradeType KuCoinTradeTypeReConverter(Contracts.Side side)
-        {
-            KuCoinApi.NetCore.Entities.TradeType tradeType = KuCoinApi.NetCore.Entities.TradeType.NONE;
-
-            if (side == Contracts.Side.Buy)
-                tradeType = KuCoinApi.NetCore.Entities.TradeType.BUY;
-            else if (side == Contracts.Side.Sell)
-                tradeType = KuCoinApi.NetCore.Entities.TradeType.SELL;
-
-            return tradeType;
-        }
-
         public KuCoinApi.Net.Entities.Side KuCoinSideConverter(Contracts.Side side)
         {
             KuCoinApi.Net.Entities.Side kuCoinSide = side == Contracts.Side.Buy 
